@@ -9,7 +9,7 @@ export default function CorpLogin() {
         <Text>voltar</Text>
       </TouchableOpacity>
       <Text>Corp Login</Text>
-      <TouchableOpacity onPress={() => navigation.navigate("")}>
+      <TouchableOpacity onPress={() => navigation.navigate("InitialRoute")}>
         <Text>Logar!</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>

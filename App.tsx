@@ -15,6 +15,7 @@ import {
   ClientWelcome,
   ForgotPassword,
 } from "@/screens/presentation";
+import InitialRoute from "@/screens/InitialRoute";
 
 const Stack = createStackNavigator();
 
@@ -37,6 +38,7 @@ export default function App() {
           <Stack.Screen name="CorpWelcome" component={CorpWelcome} />
           <Stack.Screen name="ClientWelcome" component={ClientWelcome} />
           <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+          <Stack.Screen name="InitialRoute" component={InitialRoute} />
         </Stack.Navigator>
       </View>
       <StatusBar style="auto" hidden={false} />

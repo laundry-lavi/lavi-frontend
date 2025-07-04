@@ -9,7 +9,7 @@ export default function ClientLogin() {
         <Text>voltar</Text>
       </TouchableOpacity>
       <Text>Client Login</Text>
-      <TouchableOpacity onPress={() => navigation.navigate("")}>
+      <TouchableOpacity onPress={() => navigation.navigate("InitialRoute")}>
         <Text>Logar!</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate("ClientSignin")}>
