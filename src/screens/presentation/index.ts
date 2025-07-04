@@ -1,0 +1,11 @@
+export { default as ClientLogin } from "./ClientLogin";
+export { default as ClientSignin } from "./ClientSignin";
+export { default as CorpLogin } from "./CorpLogin";
+export { default as CorpSignin } from "./CorpSignin";
+export { default as Presentation1 } from "./Presentation1";
+export { default as Presentation2 } from "./Presentation2";
+export { default as Presentation3 } from "./Presentation3";
+export { default as Welcome } from "./Welcome";
+export { default as CorpWelcome } from "./CorpWelcome";
+export { default as ClientWelcome } from "./ClientWelcome";
+export { default as ForgotPassword } from "./ForgotPassword";
