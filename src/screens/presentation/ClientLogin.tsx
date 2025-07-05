@@ -12,6 +12,9 @@ export default function ClientLogin() {
       <TouchableOpacity onPress={() => navigation.navigate("InitialRoute")}>
         <Text>Logar!</Text>
       </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+        <Text>Esqueci minha senha!</Text>
+      </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate("ClientSignin")}>
         <Text>Não tenho conta!</Text>
       </TouchableOpacity>

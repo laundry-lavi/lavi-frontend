@@ -5,8 +5,8 @@ const Stack = createStackNavigator();
 
 export default function ChatRoute() {
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Chat" component={ChatScreen} />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="ChatScreen" component={ChatScreen} />
     </Stack.Navigator>
   );
 }
