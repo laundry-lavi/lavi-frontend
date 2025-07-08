@@ -1,24 +1,162 @@
-import { View, Text, TouchableOpacity, ImageBackground } from "react-native";
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ImageBackground,
+  TextInput,
+} from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
+import BouncyCheckbox from "react-native-bouncy-checkbox";
+
+import BackArrow from "@/components/BackArrow";
+import PasswordInput from "@/components/PasswordInput";
 
 export default function CorpSignin() {
   const navigation = useNavigation<NavigationProp<any>>();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [hasEightChar, setHasEightChar] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+
+  useEffect(() => {
+    setHasEightChar(false);
+    if (password.length >= 8) setHasEightChar(true);
+  }, [password]);
+
   return (
     <View>
       <ImageBackground
         className="w-full h-full"
-        source={require("assets/bubble-bg.png")}
+        source={require("assets/bubble-bg4.png")}
       >
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text>voltar</Text>
-        </TouchableOpacity>
-        <Text>Corp Signin</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("InitialRoute")}>
-          <Text>Cadastrar!</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("CorpLogin")}>
-          <Text>Já tenho conta!</Text>
-        </TouchableOpacity>
+        {/* SETA PARA VOLTAR */}
+        <BackArrow />
+
+        {/* HEADER DA TELA */}
+        <Image
+          className="h-[140] self-center"
+          source={require("assets/logo.png")}
+          resizeMode="contain"
+        />
+        <Text className="text-[#5b5265] text-3xl font-bold text-center">
+          Cadastrar empresa
+        </Text>
+
+        {/* CONTAINER DO FORMS */}
+        <View className="gap-3 w-[95vw] h-[74vh] mx-auto my-3 p-4 bg-white border rounded-xl border-[#d9d9d9]">
+          {/* CAMPO DE NOME */}
+          <View className="flex flex-row items-center gap-2 p-1 pl-2 border rounded-xl border-[#d9d9d9]">
+            <MaterialCommunityIcons name="pencil" size={24} color="#d9d9d9" />
+            <TextInput
+              className="flex-1 text-xl"
+              placeholder="Nome da Lavanderia"
+              placeholderTextColor="#d9d9d9"
+            />
+          </View>
+
+          {/* CAMPO DE EMAIL */}
+          <View className="flex flex-row items-center gap-2 p-1 pl-2 border rounded-xl border-[#d9d9d9]">
+            <MaterialCommunityIcons name="mail" size={24} color="#d9d9d9" />
+            <TextInput
+              className="flex-1 text-xl"
+              placeholder="Email"
+              placeholderTextColor="#d9d9d9"
+            />
+          </View>
+
+          {/* CONTAINER DOS CAMPOS LADO A LADO */}
+          <View className="flex flex-row gap-2">
+            {/* CAMPO DE CNPJ */}
+            {/* TODO: adicionar validação do cnpj */}
+            <TextInput
+              className="w-[49%] p-4 pl-2 text-xl border rounded-xl border-[#d9d9d9]"
+              placeholder="CNPJ"
+              placeholderTextColor="#d9d9d9"
+            />
+
+            {/* CAMPO DE TELEFONE */}
+            {/* TODO: adicionar validação de número de telefone */}
+            <TextInput
+              className="w-[49%] p-4 pl-2 text-xl border rounded-xl border-[#d9d9d9]"
+              placeholder="Telefone"
+              placeholderTextColor="#d9d9d9"
+            />
+          </View>
+
+          {/* CAMPO DE ENDEREÇO */}
+          {/* TODO: adicionar api de localização?? */}
+          <TextInput
+            className="text-xl p-4 pl-2 border rounded-xl border-[#d9d9d9]"
+            placeholder="Localização"
+            placeholderTextColor="#d9d9d9"
+          />
+
+          {/* CAMPO DE SENHA */}
+          <Text className="-mb-2 text-[#737373] font-bold">
+            Defina sua senha
+          </Text>
+          <PasswordInput password={password} setPassword={setPassword} />
+          <BouncyCheckbox
+            useBuiltInState={false}
+            isChecked={hasEightChar}
+            size={16}
+            textComponent={
+              <Text className="text-sm ml-2">Possui 8 carateres</Text>
+            }
+            fillColor="purple"
+            bounceEffectIn={1}
+          />
+
+          {/* CAMPO DE CONFIRMAÇÃO DE SENHA */}
+          <Text className="-mb-2 text-[#737373] font-bold">
+            Confirme sua senha
+          </Text>
+          <PasswordInput
+            password={confirmPassword}
+            setPassword={setConfirmPassword}
+          />
+          <BouncyCheckbox
+            useBuiltInState={false}
+            isChecked={agreeTerms}
+            size={16}
+            textComponent={
+              <Text className="text-sm ml-2">
+                Li e concordo com os
+                <Text className="font-bold"> termos e condições</Text>
+              </Text>
+            }
+            fillColor="purple"
+            bounceEffectIn={0.95}
+            onPress={(checked: boolean) => {
+              setAgreeTerms(!agreeTerms);
+            }}
+          />
+
+          {/* BOTÃO DE CONFIRMAÇÃO DO FORMS */}
+          <TouchableOpacity
+            className="w-full py-3 items-center border-2 border-black rounded-lg"
+            onPress={() => navigation.navigate("InitialRoute")}
+          >
+            <Text className="text-black text-lg font-bold">
+              Cadastrar empresa
+            </Text>
+          </TouchableOpacity>
+
+          {/* TEXTO PARA LEVAR AO LOGIN EMPRESARIAL */}
+          <View className="flex flex-row items-center justify-center">
+            <Text className="text-[#545454]">
+              Já tem uma conta empresarial?{" "}
+            </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("CorpLogin")}>
+              <Text className="text-[#822083] underline">Login</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ImageBackground>
     </View>
   );

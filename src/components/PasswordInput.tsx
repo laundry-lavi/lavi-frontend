@@ -33,7 +33,7 @@ export default function PasswordInput({
 
   return (
     <View className="flex flex-row items-center gap-2 p-2 border rounded-xl border-[#d9d9d9]">
-      <Foundation name="lock" size={24} color="#d9d9d9" />
+      <MaterialCommunityIcons name="lock" size={24} color="#d9d9d9" />
       <TextInput
         className="flex-1 text-xl"
         placeholder="Senha"

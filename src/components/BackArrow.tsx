@@ -6,10 +6,10 @@ export default function BackArrow() {
   const navigation = useNavigation<NavigationProp<any>>();
   return (
     <TouchableOpacity
-      className="absolute top-4 left-4 z-50 rounded-[50%] bg-white size-12"
+      className="absolute top-4 left-4 z-50 justify-center items-center rounded-[50%] bg-white size-12"
       onPress={() => navigation.goBack()}
     >
-      <AntDesign name="arrowleft" size={40} color="black" />
+      <AntDesign name="arrowleft" size={36} color="black" />
     </TouchableOpacity>
   );
 }
