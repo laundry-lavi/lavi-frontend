@@ -23,7 +23,7 @@ export default function Presentation2() {
           />
           <Text className="text-3xl font-bold">Bem vindo! 2</Text>
         </View>
-        <View className="flex-[3] items-center justify-around">
+        <View className="flex-[4] items-center justify-around">
           <Text className="text-base w-[70%] text-center">
             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Et enim
             praesentium nostrum blanditiis aliquid possimus, fuga velit dolor
