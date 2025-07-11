@@ -1,11 +1,7 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  ImageBackground,
-} from "react-native";
+import { View, TouchableOpacity, Image, ImageBackground } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+
+import Text from "@/components/MyText";
 
 export default function Presentation3() {
   const navigation = useNavigation<NavigationProp<any>>();
@@ -21,7 +17,7 @@ export default function Presentation3() {
             source={require("assets/logo.png")}
             resizeMode="contain"
           />
-          <Text className="text-3xl font-bold">Bem vindo! 3</Text>
+          <Text className="text-3xl font-sansBold">Bem vindo! 3</Text>
         </View>
         <View className="flex-[4] items-center justify-around">
           <Text className="text-base w-[70%] text-center">

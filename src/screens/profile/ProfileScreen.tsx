@@ -1,4 +1,6 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
+
+import Text from "@/components/MyText";
 
 export default function Profile() {
   return (

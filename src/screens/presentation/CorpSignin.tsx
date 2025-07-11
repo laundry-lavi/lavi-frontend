@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Text,
   TouchableOpacity,
   Image,
   ImageBackground,
@@ -15,6 +14,7 @@ import BouncyCheckbox from "react-native-bouncy-checkbox";
 
 import BackArrow from "@/components/BackArrow";
 import PasswordInput from "@/components/PasswordInput";
+import Text from "@/components/MyText";
 
 export default function CorpSignin() {
   const navigation = useNavigation<NavigationProp<any>>();
@@ -43,7 +43,7 @@ export default function CorpSignin() {
           source={require("assets/logo.png")}
           resizeMode="contain"
         />
-        <Text className="text-[#5b5265] text-3xl font-bold text-center">
+        <Text className="text-[#5b5265] text-3xl font-sansBold text-center">
           Cadastrar empresa
         </Text>
 
@@ -97,7 +97,7 @@ export default function CorpSignin() {
           />
 
           {/* CAMPO DE SENHA */}
-          <Text className="-mb-2 text-[#737373] font-bold">
+          <Text className="-mb-2 text-[#737373] font-sansBold">
             Defina sua senha
           </Text>
           <PasswordInput password={password} setPassword={setPassword} />
@@ -113,7 +113,7 @@ export default function CorpSignin() {
           />
 
           {/* CAMPO DE CONFIRMAÇÃO DE SENHA */}
-          <Text className="-mb-2 text-[#737373] font-bold">
+          <Text className="-mb-2 text-[#737373] font-sansBold">
             Confirme sua senha
           </Text>
           <PasswordInput
@@ -127,7 +127,7 @@ export default function CorpSignin() {
             textComponent={
               <Text className="text-sm ml-2">
                 Li e concordo com os
-                <Text className="font-bold"> termos e condições</Text>
+                <Text className="font-sansBold"> termos e condições</Text>
               </Text>
             }
             fillColor="purple"
@@ -142,7 +142,7 @@ export default function CorpSignin() {
             className="w-full py-3 items-center border-2 border-black rounded-lg"
             onPress={() => navigation.navigate("InitialRoute")}
           >
-            <Text className="text-black text-lg font-bold">
+            <Text className="text-black text-lg font-sansBold">
               Cadastrar empresa
             </Text>
           </TouchableOpacity>

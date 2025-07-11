@@ -15,7 +15,12 @@ module.exports = {
     "text-[#D88DEE]",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ["OpenSans_400Regular"],
+        sansBold: ["OpenSans_700Bold"],
+      },
+    },
   },
   plugins: [],
 };

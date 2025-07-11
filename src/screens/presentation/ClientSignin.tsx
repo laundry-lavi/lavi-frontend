@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   TouchableOpacity,
   ImageBackground,
   Image,
@@ -15,6 +14,7 @@ import BouncyCheckbox from "react-native-bouncy-checkbox";
 
 import BackArrow from "@/components/BackArrow";
 import PasswordInput from "@/components/PasswordInput";
+import Text from "@/components/MyText";
 
 export default function ClientSignin() {
   const navigation = useNavigation<NavigationProp<any>>();
@@ -43,7 +43,7 @@ export default function ClientSignin() {
           source={require("assets/logo.png")}
           resizeMode="contain"
         />
-        <Text className="text-[#5b5265] text-3xl font-bold text-center">
+        <Text className="text-[#5b5265] text-3xl font-sansBold text-center">
           Bem vindo!
         </Text>
 
@@ -105,7 +105,7 @@ export default function ClientSignin() {
           />
 
           {/* CAMPO DE SENHA */}
-          <Text className="-mb-2 text-[#737373] font-bold">
+          <Text className="-mb-2 text-[#737373] font-sansBold">
             Defina sua senha
           </Text>
           <PasswordInput password={password} setPassword={setPassword} />
@@ -121,7 +121,7 @@ export default function ClientSignin() {
           />
 
           {/* CAMPO DE CONFIRMAÇÃO DE SENHA */}
-          <Text className="-mb-2 text-[#737373] font-bold">
+          <Text className="-mb-2 text-[#737373] font-sansBold">
             Confirme sua senha
           </Text>
           <PasswordInput
@@ -135,7 +135,7 @@ export default function ClientSignin() {
             textComponent={
               <Text className="text-sm ml-2">
                 Li e concordo com os
-                <Text className="font-bold"> termos e condições</Text>
+                <Text className="font-sansBold"> termos e condições</Text>
               </Text>
             }
             fillColor="purple"
@@ -150,7 +150,9 @@ export default function ClientSignin() {
             className="w-full py-3 items-center border-2 border-black rounded-lg"
             onPress={() => navigation.navigate("InitialRoute")}
           >
-            <Text className="text-black text-lg font-bold">Cadastrar-se</Text>
+            <Text className="text-black text-lg font-sansBold">
+              Cadastrar-se
+            </Text>
           </TouchableOpacity>
 
           {/* TEXTO PARA LEVAR AO LOGIN DE CLIENTE */}

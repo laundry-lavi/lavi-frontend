@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   TouchableOpacity,
   ImageBackground,
   Image,
@@ -14,6 +13,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import BackArrow from "@/components/BackArrow";
 import PasswordInput from "@/components/PasswordInput";
+import Text from "@/components/MyText";
 
 export default function ClientLogin() {
   const [password, setPassword] = useState("");
@@ -38,7 +38,7 @@ export default function ClientLogin() {
         {/* CONTAINER DO FORMS */}
         <View className="gap-3 w-[95vw] h-[70vh] mx-auto my-3 p-4 bg-white border rounded-xl border-[#d9d9d9]">
           {/* TEXTO INTRODUTÓRIO */}
-          <Text className="text-[#5b5265] text-xl font-bold text-center my-7">
+          <Text className="text-[#5b5265] text-xl font-sansBold text-center my-7">
             Que bom ter você de volta!
           </Text>
 
@@ -70,7 +70,7 @@ export default function ClientLogin() {
             className="w-full py-3 items-center bg-[#080030] rounded-lg"
             onPress={() => navigation.navigate("InitialRoute")}
           >
-            <Text className="text-white text-lg font-bold">Login</Text>
+            <Text className="text-white text-lg font-sansBold">Login</Text>
           </TouchableOpacity>
 
           {/* TEXTO PARA LEVAR AO LOGIN EMPRESARIAL */}

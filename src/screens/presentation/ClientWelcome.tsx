@@ -1,12 +1,8 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  ImageBackground,
-} from "react-native";
+import { View, TouchableOpacity, Image, ImageBackground } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+
 import BackArrow from "@/components/BackArrow";
+import Text from "@/components/MyText";
 
 export default function ClientWelcome() {
   const navigation = useNavigation<NavigationProp<any>>();
@@ -23,11 +19,11 @@ export default function ClientWelcome() {
             source={require("assets/logo.png")}
             resizeMode="contain"
           />
-          <Text className="text-3xl font-bold text-[#822083]">
+          <Text className="text-3xl font-sansBold text-[#822083]">
             Olá, Bem-Vindo!
           </Text>
           <Text className="text-xl w-[60%] text-center">
-            <Text className="font-bold">Cliente</Text> faça o seu login ou
+            <Text className="font-sansBold">Cliente</Text> faça o seu login ou
             cadastro abaixo
           </Text>
         </View>
@@ -36,13 +32,13 @@ export default function ClientWelcome() {
             className="w-[80%] py-3 items-center bg-[#370e38] rounded-lg"
             onPress={() => navigation.navigate("ClientSignin")}
           >
-            <Text className="text-white text-lg font-bold">Cadastro</Text>
+            <Text className="text-white text-lg font-sansBold">Cadastro</Text>
           </TouchableOpacity>
           <TouchableOpacity
             className="w-[80%] py-3 items-center border-2 border-[#370e38] rounded-lg"
             onPress={() => navigation.navigate("ClientLogin")}
           >
-            <Text className="text-[#370e38] text-lg font-bold">Login</Text>
+            <Text className="text-[#370e38] text-lg font-sansBold">Login</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>

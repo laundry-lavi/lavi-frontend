@@ -9,9 +9,12 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo-google-fonts/open-sans": "^0.4.1",
     "@react-navigation/bottom-tabs": "^7.4.2",
     "@react-navigation/stack": "^7.4.2",
     "expo": "~53.0.17",
+    "expo-font": "~13.3.2",
+    "expo-splash-screen": "~0.30.10",
     "expo-status-bar": "~2.2.3",
     "nativewind": "^4.1.23",
     "react": "19.0.0",

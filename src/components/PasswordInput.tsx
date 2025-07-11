@@ -35,7 +35,7 @@ export default function PasswordInput({
     <View className="flex flex-row items-center gap-2 p-2 border rounded-xl border-[#d9d9d9]">
       <MaterialCommunityIcons name="lock" size={24} color="#d9d9d9" />
       <TextInput
-        className="flex-1 text-xl"
+        className="flex-1 text-xl font-sans"
         placeholder="Senha"
         placeholderTextColor="#d9d9d9"
         secureTextEntry={passwordVisibility.isVisible}

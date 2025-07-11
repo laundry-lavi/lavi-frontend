@@ -1,6 +1,5 @@
 import {
   View,
-  Text,
   TouchableOpacity,
   ImageBackground,
   TextInput,
@@ -10,6 +9,8 @@ import { NavigationProp, useNavigation } from "@react-navigation/native";
 import Fontisto from "@expo/vector-icons/Fontisto";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
+
+import Text from "@/components/MyText";
 
 export default function ForgotPassword() {
   const navigation = useNavigation<NavigationProp<any>>();
@@ -21,8 +22,10 @@ export default function ForgotPassword() {
       >
         <View className="flex-[6] justify-center items-center">
           <Fontisto name="locked" size={36} color="#8866a2" />
-          <Text className="text-5xl text-[#8866a2] font-bold">Esqueceu</Text>
-          <Text className="text-5xl font-bold">sua senha?</Text>
+          <Text className="text-5xl text-[#8866a2] font-sansBold">
+            Esqueceu
+          </Text>
+          <Text className="text-5xl font-sansBold">sua senha?</Text>
           <Text>Não se preocupe</Text>
           <Text>Vamos te mandar as instruções</Text>
         </View>
@@ -31,16 +34,20 @@ export default function ForgotPassword() {
           <View className="flex flex-row items-center gap-2 mb-3 p-1 pl-2 border rounded-xl border-[#d9d9d9]">
             <MaterialCommunityIcons name="mail" size={24} color="#d9d9d9" />
             <TextInput
-              className="flex-1 text-xl"
+              className="flex-1 text-xl font-sans"
               placeholder="Email"
               placeholderTextColor="#d9d9d9"
             />
           </View>
           <TouchableOpacity className="w-full mb-28 py-3 items-center border-2 bg-[#210030] rounded-lg">
-            <Text className="text-white text-lg font-bold">Enviar E-mail</Text>
+            <Text className="text-white text-lg font-sansBold">
+              Enviar E-mail
+            </Text>
           </TouchableOpacity>
 
-          <Text className="font-bold text-[#210030] mb-1">Voltar ao login</Text>
+          <Text className="font-sansBold text-[#210030] mb-1">
+            Voltar ao login
+          </Text>
           <TouchableOpacity
             className="justify-center items-center rounded-[50%] bg-white border border-gray-100 size-12"
             onPress={() => navigation.goBack()}

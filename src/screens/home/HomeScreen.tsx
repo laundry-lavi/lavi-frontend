@@ -1,4 +1,5 @@
-import { View, Text, Image, ImageBackground } from "react-native";
+import { View, Image, ImageBackground } from "react-native";
+import Text from "@/components/MyText";
 
 export default function HomeScreen() {
   return (
