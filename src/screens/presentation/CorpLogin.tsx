@@ -42,13 +42,12 @@ export default function CorpLogin() {
             Que bom ter você de volta!
           </Text>
 
-          {/* CAMPO DE ENDEREÇO */}
-          {/* TODO: adicionar api de localização?? */}
+          {/* CAMPO DE CÓDIGO DA LAVANDERIA */}
           <View className="flex flex-row items-center gap-2 p-1 pl-2 border rounded-xl border-[#d9d9d9]">
             <MaterialCommunityIcons name="security" size={24} color="#d9d9d9" />
             <TextInput
               className="flex-1 text-xl"
-              placeholder="Email"
+              placeholder="Código da Lavanderia"
               placeholderTextColor="#d9d9d9"
             />
           </View>
@@ -68,9 +67,7 @@ export default function CorpLogin() {
             className="w-full py-3 items-center bg-[#080030] rounded-lg"
             onPress={() => navigation.navigate("InitialRoute")}
           >
-            <Text className="text-white text-lg font-bold">
-              Cadastrar empresa
-            </Text>
+            <Text className="text-white text-lg font-bold">Login</Text>
           </TouchableOpacity>
 
           {/* TEXTO PARA LEVAR AO LOGIN EMPRESARIAL */}

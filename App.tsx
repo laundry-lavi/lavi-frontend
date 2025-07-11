@@ -29,7 +29,7 @@ export default function App() {
         <SafeAreaView style={{ flex: 1 }}>
           <StatusBar style="auto" hidden={false} />
           <Stack.Navigator
-            initialRouteName="CorpWelcome"
+            initialRouteName="ClientWelcome"
             screenOptions={{ headerShown: false }}
           >
             <Stack.Screen name="Presentation1" component={Presentation1} />
