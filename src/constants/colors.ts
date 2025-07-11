@@ -9,4 +9,6 @@ export const colors = {
   color8: "#210030",
   color9: "#8866a2",
   color10: "#a4a4a4",
+  color11: "#f2f2f2",
+  color12: "#4c4669",
 };
