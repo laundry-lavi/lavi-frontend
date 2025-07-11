@@ -1,11 +1,12 @@
 import { View, Image, ImageBackground } from "react-native";
 
-import { Text } from "@/components";
+import { Text, Header } from "@/components";
 
 export default function HomeScreen() {
   return (
     <View>
-      <Text>Home Screen</Text>
+      <Header />
+      <Text>Home Scree</Text>
     </View>
   );
 }
