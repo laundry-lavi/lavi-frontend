@@ -11,9 +11,7 @@ import { useState } from "react";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import BackArrow from "@/components/BackArrow";
-import PasswordInput from "@/components/PasswordInput";
-import Text from "@/components/MyText";
+import { Text, BackArrow, PasswordInput } from "@/components";
 
 export default function ClientLogin() {
   const [password, setPassword] = useState("");

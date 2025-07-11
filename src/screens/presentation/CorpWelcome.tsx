@@ -1,8 +1,7 @@
 import { View, TouchableOpacity, Image, ImageBackground } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
-import BackArrow from "@/components/BackArrow";
-import Text from "@/components/MyText";
+import { Text, BackArrow } from "@/components";
 
 export default function CorpWelcome() {
   const navigation = useNavigation<NavigationProp<any>>();

@@ -11,9 +11,7 @@ import { NavigationProp, useNavigation } from "@react-navigation/native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import BackArrow from "@/components/BackArrow";
-import PasswordInput from "@/components/PasswordInput";
-import Text from "@/components/MyText";
+import { Text, BackArrow, PasswordInput } from "@/components";
 
 export default function CorpLogin() {
   const [password, setPassword] = useState("");

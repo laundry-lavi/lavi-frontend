@@ -12,9 +12,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 
-import BackArrow from "@/components/BackArrow";
-import PasswordInput from "@/components/PasswordInput";
-import Text from "@/components/MyText";
+import { Text, BackArrow, PasswordInput } from "@/components";
 
 export default function CorpSignin() {
   const navigation = useNavigation<NavigationProp<any>>();

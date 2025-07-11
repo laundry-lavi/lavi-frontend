@@ -10,7 +10,7 @@ import Fontisto from "@expo/vector-icons/Fontisto";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
-import Text from "@/components/MyText";
+import { Text } from "@/components";
 
 export default function ForgotPassword() {
   const navigation = useNavigation<NavigationProp<any>>();

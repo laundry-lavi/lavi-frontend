@@ -1,7 +1,7 @@
 import { View, TouchableOpacity, Image, ImageBackground } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
-import Text from "@/components/MyText";
+import { Text } from "@/components";
 
 export default function Presentation1() {
   const navigation = useNavigation<NavigationProp<any>>();
