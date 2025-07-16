@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-import { Text } from "@/components";
+import Text from "./MyText";
 
 type ConversationStatus = "sent" | "delivered" | "read" | "pending";
 

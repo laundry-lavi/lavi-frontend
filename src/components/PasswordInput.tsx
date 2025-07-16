@@ -8,8 +8,6 @@ import {
   ScrollView,
 } from "react-native";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import Foundation from "@expo/vector-icons/Foundation";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { PasswordInputProps, PasswordVisibilityState } from "../types";
 
 const passwordInputProps = {};
