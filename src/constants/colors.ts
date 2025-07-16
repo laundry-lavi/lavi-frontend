@@ -11,4 +11,5 @@ export const colors = {
   color10: "#a4a4a4",
   color11: "#f2f2f2",
   color12: "#4c4669",
+  color13: "#a391c2",
 };

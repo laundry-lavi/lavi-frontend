@@ -3,3 +3,4 @@ export { default as Header } from "./Header";
 export { default as Text } from "./MyText";
 export { default as PasswordInput } from "./PasswordInput";
 export { default as NotificationBtn } from "./NotificationBtn";
+export { default as SmallLaundryCard } from "./SmallLaundryCard";
