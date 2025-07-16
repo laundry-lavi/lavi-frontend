@@ -9,8 +9,20 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-import { Text, ConversationComponent } from "@/components";
-import { Conversation, ConversationStatus } from "@/types";
+import { Text } from "@/components";
+
+type ConversationStatus = "sent" | "delivered" | "read" | "pending";
+
+type Conversation = {
+  id: string;
+  name: string;
+  avatarUrl: ImageSourcePropType;
+  lastMessage: string;
+  timestamp: string;
+  unreadCount: number;
+  status: ConversationStatus;
+  isActive: boolean;
+};
 
 const conversationsData: Conversation[] = [
   {
@@ -95,29 +107,61 @@ const conversationsData: Conversation[] = [
   },
 ];
 
-export default function Chat() {
+export default function ConversationComponent({
+  item,
+}: {
+  item: Conversation;
+}) {
+  const statusIcons: Record<ConversationStatus, string> = {
+    pending: "time-outline",
+    sent: "checkmark-outline",
+    delivered: "checkmark-done-outline",
+    read: "checkmark-done-outline",
+  };
+
+  const statusIconColor =
+    item.status === "read" ? "text-blue-500" : "text-gray-400";
+
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <Header />
-      <FlatList
-        data={conversationsData}
-        renderItem={({ item }) => <ConversationComponent item={item} />}
-        keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => (
-          <View className="h-px bg-gray-200 ml-20 my-1" />
-        )}
-      />
-    </SafeAreaView>
+    <TouchableOpacity className="flex-row gap-2 items-center p-3">
+      {/* Indicador de ativa */}
+      {item.isActive ? (
+        <View className={`w-1 h-10 rounded-full bg-purple-600`} />
+      ) : (
+        <></>
+      )}
+
+      {/* Avatar */}
+      <Image source={item.avatarUrl} className="w-14 h-14 rounded-full mr-1" />
+
+      {/* Conteúdo da Mensagem */}
+      <View className="flex-1">
+        <View className="flex-row justify-between items-center">
+          <Text className="font-bold text-xl text-gray-800">{item.name}</Text>
+          <Text className="text-xs text-gray-500">{item.timestamp}</Text>
+        </View>
+        <View className="flex-row justify-between items-center mt-1">
+          <View className="flex-row items-center flex-1">
+            <Ionicons
+              name={statusIcons[item.status] as any}
+              size={16}
+              className={`${statusIconColor} mr-1`}
+            />
+            <Text className="text-gray-500" numberOfLines={1}>
+              {item.lastMessage}
+            </Text>
+          </View>
+
+          {/* Contador de não lidas */}
+          {item.unreadCount > 0 && (
+            <View className="bg-purple-200 w-5 h-5 rounded-full justify-center items-center ml-2">
+              <Text className="text-purple-700 font-bold text-xs">
+                {item.unreadCount}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
-
-const Header: React.FC = () => (
-  <View className="flex-row justify-between items-center p-4 bg-white border-b border-gray-200">
-    <View className="bg-[#370e38] py-2 px-5 rounded-lg">
-      <Text className="text-white font-bold text-base">Conversas</Text>
-    </View>
-    <TouchableOpacity>
-      <Ionicons name="filter" size={30} color="#370e38" />
-    </TouchableOpacity>
-  </View>
-);
