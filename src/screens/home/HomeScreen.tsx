@@ -81,6 +81,7 @@ export default function HomeScreen() {
         </Text>
         <FlatList
           className="w-screen -ml-2 mb-4"
+          showsHorizontalScrollIndicator={false}
           data={laundrys}
           renderItem={SmallLaundryCard}
           horizontal={true}
@@ -92,6 +93,7 @@ export default function HomeScreen() {
         </Text>
         <FlatList
           className="w-screen -ml-2 mb-4"
+          showsHorizontalScrollIndicator={false}
           data={colaboradores}
           renderItem={ColaboradorAvatar}
           horizontal={true}
