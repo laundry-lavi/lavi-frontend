@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ImageSourcePropType,
 } from "react-native";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 
 import { Text, Header, SmallLaundryCard } from "@/components";
 
@@ -67,6 +68,8 @@ const ColaboradorAvatar = ({ item }: { item: Colaborador }) => (
 );
 
 export default function HomeScreen() {
+  const navigation = useNavigation<NavigationProp<any>>();
+
   return (
     <View>
       <Header />
@@ -83,7 +86,15 @@ export default function HomeScreen() {
           className="w-screen -ml-2 mb-4"
           showsHorizontalScrollIndicator={false}
           data={laundrys}
-          renderItem={SmallLaundryCard}
+          renderItem={({ item }) => {
+            return (
+              <TouchableOpacity
+                onPress={() => navigation.navigate("LaundryRoute")}
+              >
+                <SmallLaundryCard item={item} />
+              </TouchableOpacity>
+            );
+          }}
           horizontal={true}
           keyExtractor={(item) => item.id.toString()}
         />

@@ -7,7 +7,7 @@ import { Laundry } from "@/types";
 
 export default function SmallLaundryCard({ item }: { item: Laundry }) {
   return (
-    <TouchableOpacity className="flex flex-row gap-2 rounded-lg p-3 mr-4 w-72 border border-[#d9d9d9]">
+    <View className="flex flex-row gap-2 rounded-lg p-3 mr-4 w-72 h-32 border border-[#d9d9d9]">
       <View className="w-1 h-full bg-[#a391c2] rounded-xl"></View>
       <View className="flex-[6] flex-col justify-between">
         <Text className="text-base font-bold text-gray-800 mt-1">
@@ -34,6 +34,6 @@ export default function SmallLaundryCard({ item }: { item: Laundry }) {
           <Text className="text-white text-xs text-center">Chega ás 12:01</Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
