@@ -11,6 +11,7 @@ import {
   FlatList,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 
 // --- TIPAGEM (TYPESCRIPT) ---
 
@@ -212,6 +213,7 @@ const ServicesSection: React.FC = () => {
 
 // --- TELA PRINCIPAL ---
 export default function LaundryProfileScreen() {
+  const navigation = useNavigation<NavigationProp<any>>();
   const [activeTab, setActiveTab] = useState<"Avaliações" | "Serviços">(
     "Avaliações"
   );
@@ -231,7 +233,10 @@ export default function LaundryProfileScreen() {
               <Image source={item.source} className="w-screen h-60" />
             )}
           />
-          <TouchableOpacity className="absolute top-4 left-4 bg-black/40 p-2 rounded-full">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="absolute top-4 left-4 bg-black/40 p-2 rounded-full"
+          >
             <Ionicons name="arrow-back" size={24} color="white" />
           </TouchableOpacity>
         </View>
@@ -265,7 +270,10 @@ export default function LaundryProfileScreen() {
                   +55 11 98765-4900
                 </Text>
               </View>
-              <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-lg p-3 flex-1">
+              <TouchableOpacity
+                onPress={() => navigation.navigate("LaundryScheduleScreen")}
+                className="flex-row items-center border border-gray-300 rounded-lg p-3 flex-1"
+              >
                 <Ionicons name="calendar-outline" size={24} color="#4B5563" />
                 <View className="ml-3">
                   <Text className="font-bold text-gray-800">Agendamento</Text>

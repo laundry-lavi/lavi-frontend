@@ -10,8 +10,6 @@ import {
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { PasswordInputProps, PasswordVisibilityState } from "../types";
 
-const passwordInputProps = {};
-
 export default function PasswordInput({
   password,
   setPassword,
