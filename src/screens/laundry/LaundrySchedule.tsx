@@ -12,6 +12,7 @@ import {
   Platform,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
 
 import { BackArrow } from "@/components";
 
@@ -149,6 +150,7 @@ const RadioButton: React.FC<{ selected: boolean }> = ({ selected }) => (
 
 // --- TELA PRINCIPAL ---
 export default function LaundryScheduleScreen() {
+  const navigation = useNavigation<NavigationProp<any>>();
   const [orderItems, setOrderItems] = useState<OrderItem[]>([
     { id: 1, quantity: "0", clothing: "", washType: "", value: "R$ 00,00" },
     { id: 2, quantity: "0", clothing: "", washType: "", value: "R$ 00,00" },
@@ -284,7 +286,10 @@ export default function LaundryScheduleScreen() {
               <Text className="text-gray-600">Valor total:</Text>
               <Text className="font-bold text-gray-800">R$ 15,00</Text>
             </View>
-            <TouchableOpacity className="bg-purple-900 rounded-lg p-4 items-center">
+            <TouchableOpacity
+              onPress={() => navigation.navigate("ConcludedOrderScreen")}
+              className="bg-purple-900 rounded-lg p-4 items-center"
+            >
               <Text className="text-white font-bold text-base">
                 Concluir agendamento
               </Text>
