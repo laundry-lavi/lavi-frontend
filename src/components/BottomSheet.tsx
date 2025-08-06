@@ -12,6 +12,8 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 
+import BottomSheetCard from "./BottomSheetCard";
+
 // 1. Pegamos a altura da tela para fazer nossos cálculos
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -81,11 +83,9 @@ export default function BottomSheet() {
       <GestureDetector gesture={gesture}>
         <Animated.View style={[styles.bottomSheetContainer, rBottomSheetStyle]}>
           <View style={styles.line} />
-          <Text style={styles.title}>Sua Sidebar</Text>
-          <Text style={styles.content}>Arraste para cima e para baixo!</Text>
-          <Text style={styles.content}>
-            Este conteúdo está dentro do Bottom Sheet.
-          </Text>
+          <Text style={styles.title}>Lavanderias mais próximas</Text>
+
+          <BottomSheetCard />
         </Animated.View>
       </GestureDetector>
     </>
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     // A mágica: translateY irá controlar a posição a partir do topo.
     // Começa em SCREEN_HEIGHT * 0.3, o que significa que 70% está para fora
     // da tela para baixo.
-    top: SCREEN_HEIGHT * 0.82,
+    top: SCREEN_HEIGHT * 0.62,
     borderRadius: 25,
     // Adicionamos uma sombra para dar um efeito de elevação
     shadowColor: "#000",

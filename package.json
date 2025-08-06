@@ -22,9 +22,9 @@
     "react-native-bouncy-checkbox": "^4.1.2",
     "react-native-maps": "1.20.1",
     "react-native-modal": "^14.0.0-rc.1",
-    "react-native-permissions": "^5.4.2",
     "react-native-reanimated": "~3.17.4",
-    "react-native-safe-area-context": "^5.4.0"
+    "react-native-safe-area-context": "^5.4.0",
+    "expo-location": "~18.1.6"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
