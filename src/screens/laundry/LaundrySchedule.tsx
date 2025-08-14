@@ -211,12 +211,12 @@ export default function LaundryScheduleScreen() {
           {/* Tipos de Entrega */}
           <View className="my-6">
             <SectionTitle title="Tipos de Entrega" />
-            <View className="flex-row justify-between px-4 mt-4 space-x-3">
+            <View className="flex-row justify-between gap-1 px-4 mt-4">
               <TouchableOpacity
                 onPress={() => setDeliveryType("delivery")}
-                className={`flex-1 p-4 rounded-lg border ${deliveryType === "delivery" ? "bg-purple-400 border-purple-400" : "bg-white border-gray-300"}`}
+                className={`flex-1 p-2 rounded-lg border ${deliveryType === "delivery" ? "bg-purple-400 border-purple-400" : "bg-white border-gray-300"}`}
               >
-                <View className="flex-row justify-between items-start">
+                <View className="flex-row justify-between items-center">
                   <View>
                     <Text
                       className={`font-bold ${deliveryType === "delivery" ? "text-white" : "text-gray-800"}`}

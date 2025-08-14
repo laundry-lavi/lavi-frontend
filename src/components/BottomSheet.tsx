@@ -1,5 +1,15 @@
 import React from "react";
-import { StyleSheet, View, Text, Dimensions } from "react-native";
+import {
+  StyleSheet,
+  SafeAreaView,
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  ImageSourcePropType,
+  Dimensions,
+} from "react-native";
 import {
   Gesture,
   GestureDetector,
@@ -11,6 +21,7 @@ import Animated, {
   withSpring,
   interpolate,
 } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 
 import BottomSheetCard from "./BottomSheetCard";
 
@@ -19,7 +30,7 @@ const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 // 2. Definimos a altura máxima que nosso BottomSheet pode ter.
 // Aqui, 80% da tela.
-const MAX_TRANSLATE_Y = -SCREEN_HEIGHT * 0.74;
+const MAX_TRANSLATE_Y = -SCREEN_HEIGHT * 0.53;
 
 export default function BottomSheet() {
   // 3. Este shared value vai guardar a posição Y atual do nosso sheet.
@@ -84,13 +95,166 @@ export default function BottomSheet() {
         <Animated.View style={[styles.bottomSheetContainer, rBottomSheetStyle]}>
           <View style={styles.line} />
           <Text style={styles.title}>Lavanderias mais próximas</Text>
-
+          <FlatList
+            data={laundryData}
+            renderItem={({ item }) => <LaundryCard item={item} />}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ padding: 16, paddingTop: 0 }}
+          />
           <BottomSheetCard />
         </Animated.View>
       </GestureDetector>
     </>
   );
 }
+
+// --- TIPAGEM (TYPESCRIPT) ---
+
+type Laundry = {
+  id: string;
+  name: string;
+  rating: number;
+  maxRating: number;
+  descriptionPart1: string;
+  descriptionPart2: string; // Parte em negrito
+  descriptionPart3: string;
+  imageUrl: ImageSourcePropType;
+  eta: string;
+  arrivalTime: string;
+};
+
+// --- DADOS DE EXEMPLO (MOCK DATA) ---
+
+const laundryData: Laundry[] = [
+  {
+    id: "1",
+    name: "Lave-bem",
+    rating: 4.5,
+    maxRating: 5,
+    descriptionPart1:
+      "...Serviço rápido e eficiente para quem não tem tempo a perder. ",
+    descriptionPart2: "Ideal para o dia a dia, ",
+    descriptionPart3: "garantindo suas roupas limpas e passadas com agilidade.",
+    imageUrl: {
+      uri: "https://images.pexels.com/photos/8991475/pexels-photo-8991475.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    },
+    eta: "15 Minutos",
+    arrivalTime: "Chega às 13:01",
+  },
+  {
+    id: "2",
+    name: "Prima Clean",
+    rating: 4.8, // Rating ligeiramente diferente
+    maxRating: 5,
+    descriptionPart1:
+      "...Especialistas em lavagem a seco e cuidados com tecidos delicados. ",
+    descriptionPart2: "Suas roupas de festa e peças finas ",
+    descriptionPart3: "tratadas com a atenção e os produtos que elas merecem.",
+    imageUrl: {
+      uri: "https://images.pexels.com/photos/8991474/pexels-photo-8991474.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    },
+    eta: "20 Minutos", // ETA diferente
+    arrivalTime: "Chega às 13:06",
+  },
+  {
+    id: "3",
+    name: "Super Wash",
+    rating: 4.2, // Rating ligeiramente diferente
+    maxRating: 5,
+    descriptionPart1: "...A solução perfeita para lavagem de grandes volumes. ",
+    descriptionPart2: "Lavamos edredons, cobertores e tapetes, ",
+    descriptionPart3:
+      "deixando tudo limpo e cheiroso com nosso sistema industrial.",
+    imageUrl: {
+      uri: "https://images.pexels.com/photos/8991478/pexels-photo-8991478.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2",
+    },
+    eta: "18 Minutos", // ETA diferente
+    arrivalTime: "Chega às 13:04",
+  },
+];
+// --- COMPONENTES ---
+
+const StarRating: React.FC<{ rating: number; maxRating: number }> = ({
+  rating,
+  maxRating,
+}) => {
+  return (
+    <View className="flex-row">
+      {Array.from({ length: maxRating }).map((_, index) => {
+        const starNumber = index + 1;
+        let iconName: "star-outline" | "star" | "star-half-sharp" =
+          "star-outline";
+        if (starNumber <= rating) {
+          iconName = "star";
+        } else if (starNumber - 0.5 <= rating) {
+          iconName = "star-half-sharp";
+        }
+        return (
+          <Ionicons key={index} name={iconName} size={16} color="#D1D5DB" />
+        );
+      })}
+    </View>
+  );
+};
+
+const LaundryCard: React.FC<{ item: Laundry }> = ({ item }) => (
+  <View className="flex-row bg-white p-4 rounded-xl shadow-md mb-4 overflow-hidden">
+    {/* Seção de Informações (Esquerda) */}
+    <View className="flex-1 pr-4">
+      <View className="flex-row justify-between items-start">
+        <View>
+          <Text className="text-xs text-purple-600 font-semibold uppercase">
+            Lavanderia express
+          </Text>
+          <Text className="text-xl font-bold text-gray-800 mt-1">
+            {item.name}
+          </Text>
+        </View>
+        <TouchableOpacity>
+          <Ionicons name="heart-outline" size={24} color="#4B5563" />
+        </TouchableOpacity>
+      </View>
+
+      <View className="flex-row items-center my-2">
+        <Text className="text-sm font-bold text-gray-600 mr-2">
+          {item.rating}
+        </Text>
+        <StarRating rating={item.rating} maxRating={item.maxRating} />
+      </View>
+
+      <View className="flex-row mt-2">
+        <View className="w-0.5 bg-purple-200 mr-3" />
+        <Text className="text-sm text-gray-500 flex-1 leading-5">
+          {item.descriptionPart1}
+          <Text className="font-bold">{item.descriptionPart2}</Text>
+          {item.descriptionPart3}
+        </Text>
+      </View>
+    </View>
+
+    {/* Seção da Imagem (Direita) */}
+    <View className="w-32 h-40 rounded-lg">
+      <Image
+        source={item.imageUrl}
+        className="w-full h-full absolute rounded-lg"
+      />
+      <View className="absolute inset-0 bg-black/50 rounded-lg p-2 flex-col justify-center items-center">
+        <Ionicons name="location-sharp" size={20} color="white" />
+        <Text className="text-white text-[10px] text-center font-bold mt-2">
+          0.7km de distância, Taboão da Serra-SP, 06784-000
+        </Text>
+        <View className="bg-white/90 rounded-md py-1 px-2 mt-2">
+          <Text className="text-purple-900 text-[10px] font-bold">
+            {item.eta}
+          </Text>
+          <Text className="text-purple-900 text-[10px]">
+            {item.arrivalTime}
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+);
 
 const styles = StyleSheet.create({
   container: {

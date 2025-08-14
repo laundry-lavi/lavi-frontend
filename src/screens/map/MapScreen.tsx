@@ -57,6 +57,22 @@ export default function Map() {
           }}
           icon={require("assets/laund176.png")}
         />
+        <Marker
+          key={2}
+          coordinate={{
+            latitude: -23.6561106,
+            longitude: -46.7634294,
+          }}
+          icon={require("assets/laund176.png")}
+        />
+        <Marker
+          key={3}
+          coordinate={{
+            latitude: -23.6161106,
+            longitude: -46.7869294,
+          }}
+          icon={require("assets/laund176.png")}
+        />
       </MapView>
       <BottomSheet />
     </View>
