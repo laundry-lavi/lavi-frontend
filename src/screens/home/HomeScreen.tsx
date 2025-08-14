@@ -45,24 +45,24 @@ type ColaboradorAvatarProps = {
 };
 
 const colaboradores: Colaborador[] = [
-  { id: 1, name: "Lava", img: { uri: "https://i.pravatar.cc/150?img=1" } },
-  { id: 2, name: "Anda", img: { uri: "https://i.pravatar.cc/150?img=2" } },
-  { id: 3, name: "Lavand", img: { uri: "https://i.pravatar.cc/150?img=3" } },
+  { id: 1, name: "Lava", img: require("assets/img1.png") },
+  { id: 2, name: "Anda", img: require("assets/img2.png") },
+  { id: 3, name: "Lavand", img: require("assets/img3.png") },
   {
     id: 4,
     name: "Lava Fun",
-    img: { uri: "https://i.pravatar.cc/150?img=4" },
+    img: require("assets/img4.png"),
   },
-  { id: 5, name: "Super", img: { uri: "https://i.pravatar.cc/150?img=5" } },
+  { id: 5, name: "Super", img: require("assets/img5.png") },
 ];
 
 const ColaboradorAvatar = ({ item }: { item: Colaborador }) => (
   <View className="items-center mr-4">
-    {/* <Image
-      source={item.imagem}
+    <Image
+      source={item.img}
       className="w-20 h-20 rounded-full border-2 border-gray-200"
-    /> */}
-    <View className="w-20 h-20 bg-amber-500 rounded-full border-2 border-gray-200"></View>
+    />
+    {/* <View className="w-20 h-20 bg-amber-500 rounded-full border-2 border-gray-200"></View> */}
     <Text className="mt-2 text-sm text-gray-700">{item.name}</Text>
   </View>
 );
@@ -100,7 +100,7 @@ export default function HomeScreen() {
         />
 
         <Text className="text-lg text-[#210030] font-sansBold">
-          Colaboradores ???
+          Colaboradores
         </Text>
         <FlatList
           className="w-screen -ml-2 mb-4"
