@@ -6,3 +6,4 @@ export { default as NotificationBtn } from "./NotificationBtn";
 export { default as SmallLaundryCard } from "./SmallLaundryCard";
 export { default as ConversationComponent } from "./ConversationComponent";
 export { default as BottomSheet } from "./BottomSheet";
+export { default as ModalImage } from "./ModalImage";

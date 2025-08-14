@@ -13,6 +13,8 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 
+import { ModalImage } from "@/components";
+
 // --- TIPAGEM (TYPESCRIPT) ---
 
 type Review = {
@@ -30,19 +32,19 @@ const laundryImages = [
   {
     id: "1",
     source: {
-      uri: "https://images.pexels.com/photos/3993208/pexels-photo-3993208.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+      uri: "https://tse4.mm.bing.net/th/id/OIP.Vl7R5JNqqIBldgtaAA3cmQHaJI?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
     },
   },
   {
     id: "2",
     source: {
-      uri: "https://images.pexels.com/photos/7759439/pexels-photo-7759439.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+      uri: "https://tse2.mm.bing.net/th/id/OIP.VU4zPrLLQgF7Kj-Y4w7hAQHaHa?r=0&w=564&h=564&rs=1&pid=ImgDetMain&o=7&rm=3",
     },
   },
   {
     id: "3",
     source: {
-      uri: "https://images.pexels.com/photos/6782047/pexels-photo-6782047.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+      uri: "https://tse3.mm.bing.net/th/id/OIP.IYzfX0TQUuu7Hi5y1cqQCAHaE8?r=0&w=1310&h=876&rs=1&pid=ImgDetMain&o=7&rm=3",
     },
   },
 ];
@@ -62,17 +64,22 @@ const reviewData: Review = {
     {
       uri: "https://images.pexels.com/photos/2089698/pexels-photo-2089698.jpeg?auto=compress&cs=tinysrgb&w=600",
     },
-    {
-      uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
-    },
-    // Adicione mais URIs para o contador "+2" funcionar
+    // {
+    //   uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
+    // },
+    // {
+    //   uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
+    // },
+    // {
+    //   uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
+    // },
   ],
 };
 
 // --- COMPONENTES DA TELA ---
 
 // Componente para a aba "Avaliações"
-const ReviewsSection: React.FC = () => {
+const ReviewsSection = () => {
   const filters = ["Todos", "Mais recentes", "Mais antigos", "5★", "4★", "3★"];
   const [selectedFilter, setSelectedFilter] = useState("Todos");
 
@@ -182,7 +189,7 @@ const ReviewsSection: React.FC = () => {
 };
 
 // Componente para a aba "Serviços"
-const ServicesSection: React.FC = () => {
+const ServicesSection = () => {
   const ServiceItem = ({
     title,
     description,
@@ -224,13 +231,14 @@ export default function LaundryProfileScreen() {
         {/* Carrossel de Imagens */}
         <View className="h-60">
           <FlatList
+            className="bg-black"
             data={laundryImages}
             keyExtractor={(item) => item.id}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
-              <Image source={item.source} className="w-screen h-60" />
+              <ModalImage source={item.source} resizeMode="contain" />
             )}
           />
           <TouchableOpacity
