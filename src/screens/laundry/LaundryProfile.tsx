@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
-  Text,
   ScrollView,
   Image,
   TouchableOpacity,
@@ -13,7 +12,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 
-import { ModalImage } from "@/components";
+import { ModalImage, BackArrow, Text } from "@/components";
 
 // --- TIPAGEM (TYPESCRIPT) ---
 
@@ -123,6 +122,8 @@ const ReviewsSection = () => {
       <View className="flex-row items-center border border-gray-300 rounded-lg p-2 mb-6">
         <Ionicons name="chatbubble-outline" size={20} color="#6B7280" />
         <TextInput
+          multiline={true}
+          numberOfLines={5}
           placeholder="Deixar seu comentário..."
           className="flex-1 mx-2 text-gray-700"
         />
@@ -139,7 +140,7 @@ const ReviewsSection = () => {
             className="w-10 h-10 rounded-full mr-3"
           />
           <View className="flex-1">
-            <Text className="font-bold text-base text-gray-800">
+            <Text className="font-sansBold text-base text-gray-800">
               {reviewData.userName}
             </Text>
             <View className="flex-row items-center mt-1">
@@ -175,7 +176,7 @@ const ReviewsSection = () => {
               />
               {reviewData.images.length > 3 && (
                 <View className="absolute inset-0 bg-black/50 rounded-lg justify-center items-center">
-                  <Text className="text-white text-2xl font-bold">
+                  <Text className="text-white text-2xl font-sansBold">
                     +{reviewData.images.length - 2}
                   </Text>
                 </View>
@@ -198,7 +199,7 @@ const ServicesSection = () => {
     description: string;
   }) => (
     <View className="py-4 border-b border-gray-200">
-      <Text className="text-base font-bold text-gray-700">{title}</Text>
+      <Text className="text-base font-sansBold text-gray-700">{title}</Text>
       <Text className="text-base text-gray-600 mt-1">{description}</Text>
     </View>
   );
@@ -241,22 +242,17 @@ export default function LaundryProfileScreen() {
               <ModalImage source={item.source} resizeMode="contain" />
             )}
           />
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="absolute top-4 left-4 bg-black/40 p-2 rounded-full"
-          >
-            <Ionicons name="arrow-back" size={24} color="white" />
-          </TouchableOpacity>
+          <BackArrow />
         </View>
 
         <View className="p-4">
           {/* Informações Principais */}
-          <Text className="text-2xl font-bold text-gray-800">Lave-bem</Text>
+          <Text className="text-2xl font-sansBold text-gray-800">Lave-bem</Text>
           <Text className="text-base text-gray-500 mt-1">
             11 Minutos • Chega às 12:54
           </Text>
           <View className="flex-row items-center mt-1">
-            <Text className="text-yellow-500 font-bold mr-1">4.8</Text>
+            <Text className="text-yellow-500 font-sansBold mr-1">4.8</Text>
             <Ionicons name="star" size={16} color="#EAB308" />
             <Ionicons name="star" size={16} color="#EAB308" />
             <Ionicons name="star" size={16} color="#EAB308" />
@@ -274,7 +270,7 @@ export default function LaundryProfileScreen() {
                   color="#4B5563"
                   className="mt-1"
                 />
-                <Text className="text-base text-gray-700 ml-3">
+                <Text className="text-sm text-gray-700 ml-3">
                   +55 11 98765-4900
                 </Text>
               </View>
@@ -284,7 +280,9 @@ export default function LaundryProfileScreen() {
               >
                 <Ionicons name="calendar-outline" size={24} color="#4B5563" />
                 <View className="ml-3">
-                  <Text className="font-bold text-gray-800">Agendamento</Text>
+                  <Text className="text-sm font-sansBold text-gray-800">
+                    Agendamento
+                  </Text>
                   <Text className="text-xs text-gray-500">Requer Login</Text>
                 </View>
               </TouchableOpacity>
@@ -298,10 +296,7 @@ export default function LaundryProfileScreen() {
                   color="#4B5563"
                   className="mt-1"
                 />
-                <Text
-                  className="text-base text-gray-700 ml-3"
-                  numberOfLines={2}
-                >
+                <Text className="text-sm text-gray-700 ml-3" numberOfLines={2}>
                   R. 20 de Setembro, 700-Sala 12, Bela Vista, Teresina-PI,
                   13723-00
                 </Text>
@@ -316,8 +311,8 @@ export default function LaundryProfileScreen() {
                   color="#4B5563"
                   className="mt-1"
                 />
-                <Text className="text-base text-gray-700 ml-3">
-                  <Text className="font-bold text-green-600">Aberto</Text> •
+                <Text className="text-sm text-gray-700 ml-3">
+                  <Text className="font-sansBold text-green-600">Aberto</Text> •
                   Fecha às 19:00
                 </Text>
               </View>
@@ -328,10 +323,10 @@ export default function LaundryProfileScreen() {
                   color="#4B5563"
                 />
                 <View className="ml-3">
-                  <Text className="font-bold text-gray-800">
+                  <Text className="text-sm font-sansBold w-[80%] text-gray-800">
                     Entrar em contato agora
                   </Text>
-                  <Text className="text-xs text-gray-500">
+                  <Text className="text-xs w-[80%] text-gray-500">
                     Geralmente responde em um dia
                   </Text>
                 </View>
@@ -346,7 +341,7 @@ export default function LaundryProfileScreen() {
               className={`flex-1 items-center pb-2 border-b-2 ${activeTab === "Avaliações" ? "border-purple-600" : "border-transparent"}`}
             >
               <Text
-                className={`font-bold ${activeTab === "Avaliações" ? "text-purple-600" : "text-gray-500"}`}
+                className={`font-sansBold ${activeTab === "Avaliações" ? "text-purple-600" : "text-gray-500"}`}
               >
                 Avaliações
               </Text>
@@ -356,7 +351,7 @@ export default function LaundryProfileScreen() {
               className={`flex-1 items-center pb-2 border-b-2 ${activeTab === "Serviços" ? "border-purple-600" : "border-transparent"}`}
             >
               <Text
-                className={`font-bold ${activeTab === "Serviços" ? "text-purple-600" : "text-gray-500"}`}
+                className={`font-sansBold ${activeTab === "Serviços" ? "text-purple-600" : "text-gray-500"}`}
               >
                 Serviços
               </Text>
