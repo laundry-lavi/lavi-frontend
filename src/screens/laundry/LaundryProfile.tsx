@@ -12,7 +12,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 
-import { ModalImage, BackArrow, Text } from "@/components";
+import { ModalImage, ModalImageCarousel, BackArrow, Text } from "@/components";
 
 // --- TIPAGEM (TYPESCRIPT) ---
 
@@ -48,6 +48,23 @@ const laundryImages = [
   },
 ];
 
+const reviewImgs = [
+  {
+    uri: "https://images.pexels.com/photos/1450372/pexels-photo-1450372.jpeg?auto=compress&cs=tinysrgb&w=600",
+  },
+  {
+    uri: "https://images.pexels.com/photos/2089698/pexels-photo-2089698.jpeg?auto=compress&cs=tinysrgb&w=600",
+  },
+  {
+    uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
+  },
+  {
+    uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
+  },
+  {
+    uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
+  },
+];
 const reviewData: Review = {
   id: "r1",
   userName: "Fernando Hibsaro Silva Comelli",
@@ -56,23 +73,7 @@ const reviewData: Review = {
   date: "18/07/2025",
   comment:
     "A Lave-bem é uma lavanderia com ótima reputação. Ela fez um ótimo trabalho com minhas roupas, até anexei algumas imagens com um antes e depois. Sensacional! Parece novo.",
-  images: [
-    {
-      uri: "https://images.pexels.com/photos/1450372/pexels-photo-1450372.jpeg?auto=compress&cs=tinysrgb&w=600",
-    },
-    {
-      uri: "https://images.pexels.com/photos/2089698/pexels-photo-2089698.jpeg?auto=compress&cs=tinysrgb&w=600",
-    },
-    // {
-    //   uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
-    // },
-    // {
-    //   uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
-    // },
-    // {
-    //   uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
-    // },
-  ],
+  images: [],
 };
 
 // --- COMPONENTES DA TELA ---
@@ -156,6 +157,8 @@ const ReviewsSection = () => {
         </Text>
 
         {/* Galeria de Imagens */}
+        <ModalImageCarousel source={reviewImgs} resizeMode="cover" />
+        {/* 
         <View className="flex-row h-48">
           <Image
             source={reviewData.images[0]}
@@ -184,6 +187,8 @@ const ReviewsSection = () => {
             </View>
           </View>
         </View>
+      </View> 
+      */}
       </View>
     </View>
   );
