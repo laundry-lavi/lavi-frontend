@@ -29,22 +29,13 @@ type Review = {
 // --- DADOS DE EXEMPLO (MOCK DATA) ---
 const laundryImages = [
   {
-    id: "1",
-    source: {
-      uri: "https://tse4.mm.bing.net/th/id/OIP.Vl7R5JNqqIBldgtaAA3cmQHaJI?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
-    },
+    uri: "https://tse4.mm.bing.net/th/id/OIP.Vl7R5JNqqIBldgtaAA3cmQHaJI?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
   },
   {
-    id: "2",
-    source: {
-      uri: "https://tse2.mm.bing.net/th/id/OIP.VU4zPrLLQgF7Kj-Y4w7hAQHaHa?r=0&w=564&h=564&rs=1&pid=ImgDetMain&o=7&rm=3",
-    },
+    uri: "https://tse2.mm.bing.net/th/id/OIP.VU4zPrLLQgF7Kj-Y4w7hAQHaHa?r=0&w=564&h=564&rs=1&pid=ImgDetMain&o=7&rm=3",
   },
   {
-    id: "3",
-    source: {
-      uri: "https://tse3.mm.bing.net/th/id/OIP.IYzfX0TQUuu7Hi5y1cqQCAHaE8?r=0&w=1310&h=876&rs=1&pid=ImgDetMain&o=7&rm=3",
-    },
+    uri: "https://tse3.mm.bing.net/th/id/OIP.IYzfX0TQUuu7Hi5y1cqQCAHaE8?r=0&w=1310&h=876&rs=1&pid=ImgDetMain&o=7&rm=3",
   },
 ];
 
@@ -61,9 +52,9 @@ const reviewImgs = [
   {
     uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
   },
-  {
-    uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
+  // {
+  //   uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
+  // },
 ];
 const reviewData: Review = {
   id: "r1",
@@ -80,7 +71,16 @@ const reviewData: Review = {
 
 // Componente para a aba "Avaliações"
 const ReviewsSection = () => {
-  const filters = ["Todos", "Mais recentes", "Mais antigos", "5★", "4★", "3★"];
+  const filters = [
+    "Todos",
+    "Mais recentes",
+    "Mais antigos",
+    "5★",
+    "4★",
+    "3★",
+    "2★",
+    "1★",
+  ];
   const [selectedFilter, setSelectedFilter] = useState("Todos");
 
   const renderStars = (count: number) => {
@@ -239,12 +239,16 @@ export default function LaundryProfileScreen() {
           <FlatList
             className="bg-black"
             data={laundryImages}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, i) => i.toString()}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
-              <ModalImage source={item.source} resizeMode="contain" />
+              <ModalImage
+                source={item}
+                sourceArr={laundryImages}
+                resizeMode="contain"
+              />
             )}
           />
           <BackArrow />

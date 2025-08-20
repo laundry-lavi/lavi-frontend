@@ -67,51 +67,86 @@ export default function ModalImageCarousel({
         />
       </Modal>
       <View className="flex-row h-48 w-full">
-        <TouchableOpacity
-          className="w-1/2 h-full rounded-lg mr-2"
-          onPress={toggleModal}
-        >
-          <Image
-            source={source[0]}
-            className="w-full h-full rounded-lg"
-            resizeMode={resizeMode}
-          />
-        </TouchableOpacity>
-        {source.length > 1 && (
-          <View className="w-1/2 h-full flex-col">
+        { 
+          source.length == 1 ?
+            (
+              <TouchableOpacity
+                className="w-full h-full rounded-lg mr-2"
+                onPress={toggleModal}
+              >
+                <Image
+                  source={source[0]}
+                  className="w-full h-full rounded-lg"
+                  resizeMode={resizeMode}
+                />
+              </TouchableOpacity>
+            )
+            :
+            (
+              <TouchableOpacity
+                className="w-1/2 h-full rounded-lg mr-2"
+                onPress={toggleModal}
+              >
+                <Image
+                  source={source[0]}
+                  className="w-full h-full rounded-lg"
+                  resizeMode={resizeMode}
+                />
+              </TouchableOpacity>
+            )
+
+        }
+      
+        <View className="w-1/2 h-full flex-col">
+          {source.length == 2 ? 
+          (
             <TouchableOpacity
-              className="h-[48%] w-full rounded-lg mb-2"
-              onPress={toggleModal}
-            >
-              <Image
-                source={source[1]}
-                className="h-full w-full rounded-lg"
-                resizeMode={resizeMode}
-              />
-            </TouchableOpacity>
-            {source.length > 2 && (
-              <View className="h-[48%] w-full relative">
-                <TouchableOpacity
+                className="h-full w-full rounded-lg mb-2"
+                onPress={toggleModal}
+              >
+                <Image
+                  source={source[1]}
                   className="h-full w-full rounded-lg"
-                  onPress={toggleModal}
-                >
-                  <Image
-                    source={source[2]}
+                  resizeMode={resizeMode}
+                />
+              </TouchableOpacity>
+          )
+          :
+          (
+            <View className="w-full h-full flex-col">
+              <TouchableOpacity
+                className="h-[48%] w-full rounded-lg mb-2"
+                onPress={toggleModal}
+              >
+                <Image
+                  source={source[1]}
+                  className="h-full w-full rounded-lg"
+                  resizeMode={resizeMode}
+                />
+              </TouchableOpacity>
+                <View className="h-[48%] w-full relative">
+                  <TouchableOpacity
                     className="h-full w-full rounded-lg"
-                    resizeMode={resizeMode}
-                  />
-                </TouchableOpacity>
-                {source.length > 3 && (
-                  <View className="absolute inset-0 bg-black/50 rounded-lg justify-center items-center">
-                    <Text className="text-white text-2xl font-sansBold">
-                      +{source.length - 2}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-        )}
+                    onPress={toggleModal}
+                  >
+                    <Image
+                      source={source[2]}
+                      className="h-full w-full rounded-lg"
+                      resizeMode={resizeMode}
+                    />
+                  </TouchableOpacity>
+                  {source.length > 3 && (
+                    <View className="absolute inset-0 bg-black/50 rounded-lg justify-center items-center">
+                      <Text className="text-white text-2xl font-sansBold">
+                        +{source.length - 2}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+            </View>
+          )}
+        </View>
+
       </View>
     </View>
   );
