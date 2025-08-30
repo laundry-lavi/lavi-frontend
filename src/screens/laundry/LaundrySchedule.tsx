@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   SafeAreaView,
   View,
-  Text,
   ScrollView,
   Image,
   TouchableOpacity,
@@ -14,7 +13,10 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 
-import { BackArrow } from "@/components";
+import { BackArrow, Text } from "@/components";
+
+const text =
+  "em um lindo dia ensolarado o reino dos tontatta fazia uma festa para comemorar o aniversário de 18 anos da princesa mancherry, no entanto, de repente, o monstro tuffy surgiu do chão causando caos e destruição, ele rapidamente pegou a princesa em suas mãos e voltou pelo buraco da onde surgiu, deixando os tontatta em absoluto desespero";
 
 // --- TIPAGEM (TYPESCRIPT) ---
 
@@ -31,8 +33,8 @@ type PaymentType = "pix" | null;
 
 // --- COMPONENTES ---
 
-const ScreenHeader: React.FC = () => (
-  <View className="flex-row items-center p-4 pl-14 bg-gray-50">
+const ScreenHeader = () => (
+  <View className="flex-row items-center p-4 pl-14 pt-6 bg-gray-50">
     <BackArrow size={28} />
     <Text className="text-xl font-bold text-gray-800 ml-4">
       Vamos agendar seu pedido!
@@ -40,29 +42,28 @@ const ScreenHeader: React.FC = () => (
   </View>
 );
 
-const LaundryInfoCard: React.FC = () => (
-  <View className="bg-white rounded-lg shadow-md flex-row p-4 m-4">
+const LaundryInfoCard = () => (
+  <View className="bg-white rounded-lg shadow-md flex-row h-48 p-3 m-4 mt-2">
     <Image
       source={{
         uri: "https://images.pexels.com/photos/1648377/pexels-photo-1648377.jpeg?auto=compress&cs=tinysrgb&w=600",
       }}
-      className="w-24 h-32 rounded-lg"
+      className="w-28 h-[100%] rounded-lg"
     />
     <View className="flex-1 ml-4">
       <Text className="text-xs text-gray-500">Lavanderia express</Text>
-      <Text className="text-lg font-bold text-gray-800">Lave-bem</Text>
+      <Text className="text-lg font-sansBold text-gray-800">Lave-bem</Text>
       <View className="flex-row items-center my-1">
         <Text className="text-sm font-bold text-yellow-500 mr-1">4,5</Text>
         <Text className="text-yellow-500">★★★★★</Text>
       </View>
-      <Text className="text-xs text-gray-600 leading-4 mb-3">
-        -- Prima clean é uma lavanderia com ótima reputação{" "}
-        <Text className="font-bold">Lorem Ipsum</Text> is very much imp...
+      <Text className="text-sm text-gray-600 leading-4 mb-3">
+        {text.length > 73 ? text.slice(0, 73) + "..." : text}
       </Text>
       <TouchableOpacity className="flex-row items-center">
         <Ionicons name="chatbubbles-outline" size={20} color="#374151" />
         <View className="ml-2">
-          <Text className="text-sm font-bold text-gray-800">
+          <Text className="text-sm font-sansBold text-gray-800">
             Entrar em contato agora
           </Text>
           <Text className="text-xs text-gray-500">
@@ -82,55 +83,73 @@ interface OrderItemRowProps {
     field: keyof Omit<OrderItem, "id">,
     value: string
   ) => void;
+  removeOrderItem: (id: number | Date) => void;
 }
 
-const OrderItemRow = ({ item, onChange }: OrderItemRowProps) => (
-  <View className="flex-row items-center space-x-2 mb-3">
-    {/* Quant. */}
-    <View className="w-16">
-      <Text className="text-xs font-bold mb-1 text-center">Quant.</Text>
-      <TextInput
-        className="border border-gray-300 rounded-lg p-2 text-center"
-        value={item.quantity}
-        onChangeText={(text) => onChange(item.id, "quantity", text)}
-        keyboardType="number-pad"
-      />
-    </View>
-    {/* Vestimenta (Simulado como Picker) */}
-    <View className="flex-1">
-      <Text className="text-xs font-bold mb-1">Vestimenta</Text>
-      <TouchableOpacity className="flex-row justify-between items-center border border-gray-300 rounded-lg p-2.5">
-        <Text className={item.clothing ? "text-gray-800" : "text-gray-400"}>
-          {item.clothing || "Ex: Camisa"}
-        </Text>
-        <Ionicons name="chevron-down-outline" size={16} color="#6B7280" />
-      </TouchableOpacity>
-    </View>
-    {/* Tipo (Simulado como Picker) */}
-    <View className="flex-1">
-      <Text className="text-xs font-bold mb-1">Tipo de lavagem</Text>
-      <TouchableOpacity className="flex-row justify-between items-center border border-gray-300 rounded-lg p-2.5">
-        <Text className={item.washType ? "text-gray-800" : "text-gray-400"}>
-          {item.washType || "Nenhum"}
-        </Text>
-        <Ionicons name="chevron-down-outline" size={16} color="#6B7280" />
-      </TouchableOpacity>
-    </View>
-    {/* Valor */}
-    <View className="w-24">
-      <Text className="text-xs font-bold mb-1">Valor</Text>
-      <TextInput
-        className="border border-gray-300 rounded-lg p-2"
-        value={item.value}
-        onChangeText={(text) => onChange(item.id, "value", text)}
-      />
-    </View>
-  </View>
-);
+const OrderItemRow = ({
+  item,
+  onChange,
+  removeOrderItem,
+}: OrderItemRowProps) => {
+  const removeOrderItemRow = () => {};
 
-const SectionTitle: React.FC<{ title: string; isPill?: boolean }> = ({
+  return (
+    <View className="flex-row gap-2 items-center space-x-2 mb-3">
+      {/* Quant. */}
+      <View>
+        <Text className="text-xs font-bold mb-1 text-center">Quant.</Text>
+        <TextInput
+          className="border border-gray-300 rounded-lg p-2 text-center"
+          value={item.quantity}
+          onChangeText={(text) => onChange(item.id, "quantity", text)}
+          keyboardType="number-pad"
+        />
+      </View>
+      {/* Vestimenta (Simulado como Picker) */}
+      <View className="flex-1">
+        <Text className="text-xs font-bold mb-1">Vestimenta</Text>
+        <TouchableOpacity className="flex-row justify-between items-center border border-gray-300 rounded-lg p-2.5">
+          <Text className={item.clothing ? "text-gray-800" : "text-gray-400"}>
+            {item.clothing || "Ex: Camisa"}
+          </Text>
+          <Ionicons name="chevron-down-outline" size={16} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      {/* Tipo (Simulado como Picker) */}
+      <View className="flex-1">
+        <Text className="text-xs font-bold mb-1">Tipo de lavagem</Text>
+        <TouchableOpacity className="flex-row justify-between items-center border border-gray-300 rounded-lg p-2.5">
+          <Text className={item.washType ? "text-gray-800" : "text-gray-400"}>
+            {item.washType || "Nenhum"}
+          </Text>
+          <Ionicons name="chevron-down-outline" size={16} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+      {/* Valor */}
+      <View>
+        <Text className="text-xs font-bold mb-1">Valor</Text>
+        <TextInput
+          className="border border-gray-300 rounded-lg p-2"
+          value={item.value}
+          onChangeText={(text) => onChange(item.id, "value", text)}
+        />
+      </View>
+      {/* botão de deletar */}
+      <View className="mt-3">
+        <TouchableOpacity onPress={() => removeOrderItem(item.id)}>
+          <Ionicons name="trash-bin" size={24} color="red" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const SectionTitle = ({
   title,
   isPill,
+}: {
+  title: string;
+  isPill?: boolean;
 }) =>
   isPill ? (
     <View className="bg-purple-900 rounded-lg py-2 px-5 self-center">
@@ -140,7 +159,7 @@ const SectionTitle: React.FC<{ title: string; isPill?: boolean }> = ({
     <Text className="text-lg font-bold text-gray-800 text-center">{title}</Text>
   );
 
-const RadioButton: React.FC<{ selected: boolean }> = ({ selected }) => (
+const RadioButton = ({ selected }: { selected: boolean }) => (
   <View
     className={`w-6 h-6 rounded-full border-2 ${selected ? "border-purple-700 bg-purple-700" : "border-gray-400"} items-center justify-center`}
   >
@@ -167,6 +186,11 @@ export default function LaundryScheduleScreen() {
       value: "R$ 00,00",
     };
     setOrderItems([...orderItems, newItem]);
+  };
+
+  const removeOrderItem = (id: number | Date) => {
+    let oldOrderItems = orderItems.filter((order) => order.id !== id);
+    setOrderItems(oldOrderItems);
   };
 
   const handleItemChange = (
@@ -198,6 +222,7 @@ export default function LaundryScheduleScreen() {
                 key={item.id}
                 item={item}
                 onChange={handleItemChange}
+                removeOrderItem={removeOrderItem}
               />
             ))}
             <TouchableOpacity
@@ -211,15 +236,15 @@ export default function LaundryScheduleScreen() {
           {/* Tipos de Entrega */}
           <View className="my-6">
             <SectionTitle title="Tipos de Entrega" />
-            <View className="flex-row justify-between gap-1 px-4 mt-4">
+            <View className="flex-row justify-between px-4 mt-4">
               <TouchableOpacity
                 onPress={() => setDeliveryType("delivery")}
-                className={`flex-1 p-2 rounded-lg border ${deliveryType === "delivery" ? "bg-purple-400 border-purple-400" : "bg-white border-gray-300"}`}
+                className={`flex-1 p-3 mr-2 rounded-lg border ${deliveryType === "delivery" ? "bg-purple-400 border-purple-400" : "bg-white border-gray-300"}`}
               >
                 <View className="flex-row justify-between items-center">
-                  <View>
+                  <View className="w-[85%]">
                     <Text
-                      className={`font-bold ${deliveryType === "delivery" ? "text-white" : "text-gray-800"}`}
+                      className={`font-bold  ${deliveryType === "delivery" ? "text-white" : "text-gray-800"}`}
                     >
                       Entrega a Domicílio
                     </Text>
