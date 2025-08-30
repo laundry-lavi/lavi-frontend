@@ -9,6 +9,7 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Modal, { ModalProps } from "react-native-modal";
 import { useNavigation } from "@react-navigation/native";
+import { BackArrow } from "@/components";
 
 // --- TIPAGEM (TYPESCRIPT) ---
 type OrderItem = {
@@ -108,12 +109,7 @@ export default function OrderCompletedScreen() {
     <SafeAreaView className="flex-1 bg-gray-100">
       {/* Header */}
       <View className="bg-purple-900 p-5 rounded-b-2xl">
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          className="absolute top-5 left-5 bg-white w-10 h-10 rounded-full justify-center items-center"
-        >
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
+        <BackArrow size={32} />
         <Text className="text-white text-2xl font-bold text-center mt-2">
           Pedido concluído!
         </Text>

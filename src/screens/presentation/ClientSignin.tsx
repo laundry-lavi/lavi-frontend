@@ -50,7 +50,7 @@ export default function ClientSignin() {
         <View className="gap-3 w-[95vw] h-[74vh] mx-auto my-3 p-4 bg-white border rounded-xl border-[#d9d9d9]">
           {/* CAMPO DE NOME E SOBRENOME */}
           <View className="flex flex-row gap-2">
-            {/* CAMPO DE CNPJ */}
+            {/* CAMPO DE NOME */}
             <TextInput
               className="w-[49%] p-4 pl-2 text-xl border rounded-xl border-[#d9d9d9]"
               placeholder="Nome"
