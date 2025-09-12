@@ -2,6 +2,7 @@
 export interface PasswordInputProps {
   password: string;
   setPassword: (password: string) => void;
+  style?: string;
 }
 
 export type PasswordVisibilityState = {

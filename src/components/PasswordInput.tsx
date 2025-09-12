@@ -13,6 +13,7 @@ import { PasswordInputProps, PasswordVisibilityState } from "../types";
 export default function PasswordInput({
   password,
   setPassword,
+  style,
 }: PasswordInputProps) {
   const [passwordVisibility, setPasswordVisibility] =
     useState<PasswordVisibilityState>({
@@ -28,7 +29,9 @@ export default function PasswordInput({
   };
 
   return (
-    <View className="flex flex-row items-center gap-2 p-2 border rounded-xl border-[#d9d9d9]">
+    <View
+      className={`${style || "flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl border-[#d9d9d9]"}`}
+    >
       <MaterialCommunityIcons name="lock" size={24} color="#d9d9d9" />
       <TextInput
         className="flex-1 text-xl font-sans"
