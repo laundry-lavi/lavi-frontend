@@ -4,6 +4,7 @@ import {
   ImageBackground,
   Image,
   TextInput,
+  Alert,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import { useState } from "react";
@@ -13,9 +14,70 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { Text, BackArrow, PasswordInput } from "@/components";
 
+interface Customer {
+  email: string;
+  password: string;
+}
+
+const dados = {
+  email: "teste@gmail.com",
+  senha: "12345678",
+};
+
 export default function ClientLogin() {
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
   const navigation = useNavigation<NavigationProp<any>>();
+
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+  const validateFields = () => {
+    const newErrors: { [key: string]: string | null } = {};
+
+    if (!email.trim() || !email.includes("@"))
+      newErrors.email = "O email é obrigatório.";
+
+    if (password.length < 8) {
+      newErrors.password = "A senha deve ter pelo menos 8 caracteres.";
+    }
+
+    setErrors(newErrors);
+
+    // Retorna true se não houver erros
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const loginCostumer = (customer: Customer) => {
+    fetch("http://52.67.221.152/customer/sign", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: customer.email,
+        password: customer.password,
+      }),
+    })
+      .then((response) => response.json())
+      .then((body) => {
+        console.log(body);
+        navigation.navigate("InitialRoute");
+      })
+      .catch((err) => console.log(err));
+  };
+
+  const handleSubmit = () => {
+    const isFormValid = validateFields();
+    if (isFormValid) {
+      Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
+      const customer: Customer = {
+        email: email,
+        password: password,
+      };
+      loginCostumer(customer);
+    } else {
+      Alert.alert("Erro", "Por favor, corrija os campos destacados.");
+    }
+  };
 
   return (
     <View>
@@ -41,17 +103,26 @@ export default function ClientLogin() {
           </Text>
 
           {/* CAMPO DE EMAIL */}
-          <View className="flex flex-row items-center gap-2 p-1 pl-2 border rounded-xl border-[#d9d9d9]">
+          <View
+            className={`flex flex-row items-center gap-2 p-1 pl-2 border rounded-xl ${errors.email ? "border-red-500" : "border-[#d9d9d9]"}`}
+          >
             <MaterialCommunityIcons name="mail" size={24} color="#d9d9d9" />
             <TextInput
               className="flex-1 text-xl"
               placeholder="Email"
+              value={email}
+              keyboardType="email-address"
+              onChangeText={(text) => setEmail(text)}
               placeholderTextColor="#d9d9d9"
             />
           </View>
 
           {/* CAMPO DE SENHA */}
-          <PasswordInput password={password} setPassword={setPassword} />
+          <PasswordInput
+            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${errors.password ? "border-red-500" : "border-[#d9d9d9]"}`}
+            password={password}
+            setPassword={setPassword}
+          />
 
           {/* TEXTO ESQUECEU SUA SENHA */}
           <TouchableOpacity
@@ -66,7 +137,7 @@ export default function ClientLogin() {
           {/* BOTÃO DE CONFIRMAÇÃO DO FORMS */}
           <TouchableOpacity
             className="w-full py-3 items-center bg-[#080030] rounded-lg"
-            onPress={() => navigation.navigate("InitialRoute")}
+            onPress={handleSubmit}
           >
             <Text className="text-white text-lg font-sansBold">Login</Text>
           </TouchableOpacity>
