@@ -54,7 +54,10 @@ export default function CorpLogin() {
           <PasswordInput password={password} setPassword={setPassword} />
 
           {/* TEXTO ESQUECEU SUA SENHA */}
-          <TouchableOpacity className="mb-5">
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ForgotPassword")}
+            className="mb-5"
+          >
             <Text className="text-[#737373] underline">
               Esqueceu sua senha?
             </Text>

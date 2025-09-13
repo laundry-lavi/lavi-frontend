@@ -13,7 +13,7 @@ export default function Presentation1() {
       >
         <View className="flex-[2] items-center justify-between">
           <Image
-            className="h-[80] border border-red-500"
+            className="h-[140]"
             source={require("assets/logo.png")}
             resizeMode="contain"
           />
