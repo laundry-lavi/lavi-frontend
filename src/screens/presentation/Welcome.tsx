@@ -1,10 +1,16 @@
+import React, { useContext } from "react";
 import { View, TouchableOpacity, Image, ImageBackground } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 import { Text } from "@/components";
+import { AuthenticationContext } from "@/contexts/AuthenticationContext";
 
 export default function Welcome() {
   const navigation = useNavigation<NavigationProp<any>>();
+  const { setIsLaundryTrue, setIsLaundryFalse } = useContext(
+    AuthenticationContext
+  );
+
   return (
     <View>
       <ImageBackground
@@ -25,7 +31,7 @@ export default function Welcome() {
             onPress={() => navigation.navigate("CorpWelcome")}
           >
             <Text className="text-white text-base font-sansBold">
-              Sou um Funcionário/Empresa
+              Sou empreendedor
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -38,10 +44,24 @@ export default function Welcome() {
           </TouchableOpacity>
           <TouchableOpacity
             className="w-[80%] py-3 items-center bg-[#370e38] rounded-lg"
-            onPress={() => navigation.navigate("InitialRoute")}
+            onPress={() => {
+              setIsLaundryFalse();
+              navigation.navigate("InitialRoute");
+            }}
           >
             <Text className="text-white text-base font-sansBold">
-              Entrar como convidado
+              Entrar como cliente convidado
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="w-[80%] py-3 items-center bg-[#370e38] rounded-lg"
+            onPress={() => {
+              setIsLaundryTrue();
+              navigation.navigate("InitialRoute");
+            }}
+          >
+            <Text className="text-white text-base font-sansBold">
+              Entrar como empreendedor convidado
             </Text>
           </TouchableOpacity>
         </View>

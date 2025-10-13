@@ -1,8 +1,10 @@
+import React, { useContext } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Chat from "./chat/ChatRoute";
 import Home from "./home/HomeRoute";
 import Map from "./map/MapRoute";
 import Profile from "./profile/ProfileRoute";
+import { AuthenticationContext } from "@/contexts/AuthenticationContext";
 
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -11,6 +13,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 const Tab = createBottomTabNavigator();
 
 export default function InitialRoute() {
+  const { isLaundry } = useContext(AuthenticationContext);
+
   return (
     <Tab.Navigator
       initialRouteName="HomeRoute"
@@ -26,16 +30,18 @@ export default function InitialRoute() {
           ),
         }}
       />
-      <Tab.Screen
-        name="MapRoute"
-        component={Map}
-        options={{
-          title: "Map",
-          tabBarIcon: ({ focused, color, size }) => (
-            <FontAwesome name="map-marker" size={size} color={color} />
-          ),
-        }}
-      />
+      {isLaundry ? undefined : (
+        <Tab.Screen
+          name="MapRoute"
+          component={Map}
+          options={{
+            title: "Map",
+            tabBarIcon: ({ focused, color, size }) => (
+              <FontAwesome name="map-marker" size={size} color={color} />
+            ),
+          }}
+        />
+      )}
       <Tab.Screen
         name="ChatRoute"
         component={Chat}

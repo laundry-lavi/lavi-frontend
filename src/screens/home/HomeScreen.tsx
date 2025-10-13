@@ -1,3 +1,4 @@
+import React, { useContext } from "react";
 import {
   View,
   ScrollView,
@@ -10,19 +11,10 @@ import {
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 
 import { Text, Header, SmallLaundryCard } from "@/components";
+import { LaundryHome } from "@/screens/laundryScreens/";
+import { AuthenticationContext } from "@/contexts/AuthenticationContext";
 
 import { laundrys } from "@/types";
-
-type Lavanderia = {
-  id: number;
-  nome: string;
-  rating: number;
-  categoria: string;
-  tempo?: string; // Opcional
-  chegada?: string; // Opcional
-  imagem: ImageSourcePropType;
-  promocao: boolean;
-};
 
 type Colaborador = {
   id: number;
@@ -34,14 +26,6 @@ type FilterButtonProps = {
   text: string;
   isSelected: boolean;
   hasIcon?: boolean; // Opcional
-};
-
-type LavanderiaCardProps = {
-  item: Lavanderia;
-};
-
-type ColaboradorAvatarProps = {
-  item: Colaborador;
 };
 
 const colaboradores: Colaborador[] = [
@@ -56,21 +40,15 @@ const colaboradores: Colaborador[] = [
   { id: 5, name: "Super", img: require("assets/img5.png") },
 ];
 
-const ColaboradorAvatar = ({ item }: { item: Colaborador }) => (
-  <View className="items-center mr-4">
-    <Image
-      source={item.img}
-      className="w-20 h-20 rounded-full border-2 border-gray-200"
-    />
-    {/* <View className="w-20 h-20 bg-amber-500 rounded-full border-2 border-gray-200"></View> */}
-    <Text className="mt-2 text-sm text-gray-700">{item.name}</Text>
-  </View>
-);
+const testApi = async () => {};
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
+  const { isLaundry } = useContext(AuthenticationContext);
 
-  return (
+  return isLaundry ? (
+    <LaundryHome />
+  ) : (
     <View>
       <Header />
       <View className="p-4">
@@ -96,9 +74,9 @@ export default function HomeScreen() {
             );
           }}
           horizontal={true}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item, i) => i.toString()}
         />
-
+        {/*
         <Text className="text-lg text-[#210030] font-sansBold">
           Colaboradores
         </Text>
@@ -110,6 +88,7 @@ export default function HomeScreen() {
           horizontal={true}
           keyExtractor={(item) => item.id.toString()}
         />
+        */}
       </View>
     </View>
   );

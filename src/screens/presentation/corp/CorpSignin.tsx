@@ -1,4 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, {
+  useState,
+  useEffect,
+  EffectCallback,
+  SetStateAction,
+  Dispatch,
+} from "react";
 import {
   View,
   ScrollView,
@@ -18,8 +24,11 @@ import MaskInput from "react-native-mask-input";
 import { Dropdown } from "react-native-element-dropdown";
 
 import { Text, BackArrow, PasswordInput } from "@/components";
+import { cnpjMask, cepMask } from "@/constants/inputMasks";
+import { checkingCep } from "@/functions/";
+import { LaundryFormData } from "@/types";
 
-const data = [
+const dropdownData = [
   { label: "Corrente", value: "corrente" },
   { label: "Poupança", value: "poupanca" },
 ];
@@ -54,159 +63,87 @@ const dados = {
   type: "lavagem",
   profileUrl: null,
   senha: "Arthur123",
-  email: "arthur123@gmail.com",
+  email: "ArthurPendragon123@gmail.com",
 };
 
 export default function CorpSignin() {
   const navigation = useNavigation<NavigationProp<any>>();
-  const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [hasEightChar, setHasEightChar] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(false);
-  const [cep, setCep] = useState("");
-  const [city, setCity] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
-  const [address, setAddress] = useState("");
-  const [doc, setDoc] = useState("");
-  const [email, setEmail] = useState("");
-  const [coordinates, setCoordinates] = useState({ lat: "", lng: "" });
-  const [accountNumber, setAccountNumber] = useState("");
-  const [accountType, setAccountType] = useState("");
-  const [bankAgency, setBankAgency] = useState("");
-  const [bankCode, setBankCode] = useState("");
 
-  const cnpjMask = [
-    /\d/,
-    /\d/,
-    ".",
-    /\d/,
-    /\d/,
-    /\d/,
-    ".",
-    /\d/,
-    /\d/,
-    /\d/,
-    "/",
-    /\d/,
-    /\d/,
-    /\d/,
-    /\d/,
-    "-",
-    /\d/,
-    /\d/,
-  ];
-  const cepMask = [/\d/, /\d/, /\d/, /\d/, /\d/, "-", /\d/, /\d/, /\d/];
-  const checkingCep = async (cep: string) => {
-    fetch(`https://brasilapi.com.br/api/cep/v2/${cep}`)
-      .then((response) => response.json())
-      .then((body) => {
-        setCity(body.city);
-        setNeighborhood(body.neighborhood);
-        setAddress(body.street);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-    fetch(`https://cep.awesomeapi.com.br/json/${cep}`)
-      .then((response) => response.json())
-      .then((body) => {
-        setCoordinates({ lat: body.lat, lng: body.lng });
-      })
-      .catch((err) => console.error(err));
-  };
-
-  // address // FEITO
-  // Type:string
-  // required
-
-  // cnpj // FEITO
-  // Type:string
-  // required
-
-  // latitude // FEITO
-  // Type:string
-  // Pattern:^-?\d+(\.\d+)?$
-  // required
-
-  // lnggitude // FEITO
-  // Type:string
-  // Pattern:^-?\d+(\.\d+)?$
-  // required
-
-  // name // FEITO
-  // Type:string
-  // required
-
-  // ownerId
-  // Type:string
-  // Format:uuid
-  // required
-
-  // type
-  // Type:string
-  // required
-
-  // profile_url
-  // Type:string | null
-  // Format:uri
-
-  useEffect(() => {
-    setHasEightChar(false);
-    if (password.length >= 8) setHasEightChar(true);
-  }, [password]);
+  const [formData, setFormData] = useState<LaundryFormData>({
+    name: "",
+    email: "",
+    doc: "",
+    cep: "",
+    city: "",
+    neighborhood: "",
+    address: "",
+    accountNumber: "",
+    accountType: "",
+    bankAgency: "",
+    bankCode: "",
+    password: "",
+    confirmPassword: "",
+    agreeTerms: false,
+    coordinates: { lat: "", lng: "" },
+  });
 
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
 
+  const [dropdownValue, setDropdownValue] = useState(null);
+  const [isFocus, setIsFocus] = useState(false);
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+  };
+
   const validateFields = () => {
     const newErrors: { [key: string]: string | null } = {};
+    const {
+      name,
+      address,
+      email,
+      accountNumber,
+      accountType,
+      bankAgency,
+      bankCode,
+      doc,
+      cep,
+      password,
+      confirmPassword,
+      agreeTerms,
+    } = formData;
 
-    // Validação de campos obrigatórios
     if (!name.trim()) newErrors.name = "O nome é obrigatório.";
     if (!address.trim()) newErrors.address = "O endereço é obrigatório.";
     if (!email.trim() || !email.includes("@"))
-      newErrors.email = "O email é obrigatório.";
+      newErrors.email = "O email é inválido.";
     if (!accountNumber.trim())
       newErrors.accountNumber = "O número da conta é obrigatório.";
     if (!accountType.trim())
       newErrors.accountType = "O tipo da conta é obrigatório.";
     if (!bankAgency.trim())
-      newErrors.bankAgency = "A agência do banco é obrigatório.";
+      newErrors.bankAgency = "A agência do banco é obrigatória.";
     if (!bankCode.trim())
       newErrors.bankCode = "O código do banco é obrigatório.";
-
-    // Validação de CNPJ
-    if (!doc) {
-      newErrors.doc = "O CNPJ é obrigatório.";
-    }
-
-    // Validação de CEP
-    if (!cep) {
-      newErrors.cep = "O CEP é obrigatório.";
-    }
-
-    // Validação de senha
-    if (password.length < 8) {
+    if (!doc) newErrors.doc = "O CNPJ é obrigatório.";
+    if (!cep) newErrors.cep = "O CEP é obrigatório.";
+    if (password.length < 8)
       newErrors.password = "A senha deve ter pelo menos 8 caracteres.";
-    }
-
-    // Validação de confirmação de senha
-    if (password !== confirmPassword) {
+    if (password !== confirmPassword)
       newErrors.confirmPassword = "As senhas não coincidem.";
-    }
+    if (!agreeTerms) newErrors.agreeTerms = "Você deve aceitar os termos.";
 
     setErrors(newErrors);
-
-    // Retorna true se não houver erros
     return Object.keys(newErrors).length === 0;
   };
 
   const createLaundry = (laundry: Laundry) => {
     fetch("http://52.67.221.152/laundry", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         laundry: {
           name: laundry.name,
@@ -229,56 +166,43 @@ export default function CorpSignin() {
       .catch((err) => console.error(err));
   };
 
-  const [value, setValue] = useState(null);
-  const [isFocus, setIsFocus] = useState(false);
-
   const fulling = () => {
-    setName(dados.name);
-    setEmail(dados.email);
-    setDoc(dados.cnpj);
-    setCep(dados.cep);
-    setAddress(dados.address);
-    setAccountNumber(dados.accountNumber);
-    setBankAgency(dados.bankAgency);
-    setBankCode(dados.bankCode);
-    setPassword(dados.senha);
-    setConfirmPassword(dados.senha);
+    setFormData({
+      ...formData,
+      name: dados.name,
+      email: dados.email,
+      doc: dados.cnpj,
+      cep: dados.cep,
+      address: dados.address,
+      accountNumber: dados.accountNumber,
+      accountType: dados.accountType,
+      bankAgency: dados.bankAgency,
+      bankCode: dados.bankCode,
+      password: dados.senha,
+      confirmPassword: dados.senha,
+    });
+    // Manually trigger cep check for autofill
+    checkingCep(setFormData, dados.cep);
   };
 
   const handleSubmit = () => {
-    const isFormValid = validateFields();
-    if (isFormValid) {
+    if (validateFields()) {
       Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
-      const laundry = {
-        accountNumber: dados.accountNumber,
-        accountType: dados.accountType,
-        address: dados.address,
-        bankAgency: dados.bankAgency,
-        bankCode: dados.bankCode,
-        cnpj: dados.cnpj,
-        lat: dados.lat,
-        lng: dados.lng,
-        name: dados.name,
+      const laundryData: Laundry = {
+        name: formData.name,
+        cnpj: formData.doc,
+        address: formData.address,
+        lat: formData.coordinates.lat,
+        lng: formData.coordinates.lng,
+        bankCode: formData.bankCode,
+        bankAgency: formData.bankAgency,
+        accountNumber: formData.accountNumber,
+        accountType: formData.accountType,
         ownerId: "29ec3279-ec13-4cff-86ae-e21f7d8528f7",
         type: "lavagem",
         profileUrl: null,
       };
-      // const laundry = {
-      //   accountNumber: accountNumber,
-      //   accountType: accountType,
-      //   address: address,
-      //   bankAgency: bankAgency,
-      //   bankCode: bankCode,
-      //   cnpj: doc,
-      //   lat: coordinates.lat,
-      //   lng: coordinates.lng,
-      //   name: name,
-      //   ownerId: "29ec3279-ec13-4cff-86ae-e21f7d8528f7",
-      //   type: "lavagem",
-      //   profileUrl: null,
-      // };
-
-      createLaundry(laundry);
+      createLaundry(laundryData);
     } else {
       Alert.alert("Erro", "Por favor, corrija os campos destacados.");
     }
@@ -290,10 +214,8 @@ export default function CorpSignin() {
         className="w-full h-full"
         source={require("assets/bubble-bg4.png")}
       >
-        {/* SETA PARA VOLTAR */}
         <BackArrow />
 
-        {/* HEADER DA TELA */}
         <Image
           className="h-[140] self-center"
           source={require("assets/logo.png")}
@@ -305,35 +227,46 @@ export default function CorpSignin() {
           </Text>
         </TouchableOpacity>
 
-        {/* CONTAINER DO FORMS */}
         <ScrollView className="w-[95vw] h-[74vh] mx-auto my-3 p-4 bg-white border rounded-xl border-[#d9d9d9]">
           {/* CAMPO DE NOME */}
           <View
-            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${errors.name ? "border-red-500" : "border-[#d9d9d9]"}`}
+            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${
+              errors.name ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
           >
             <MaterialCommunityIcons name="pencil" size={24} color="#d9d9d9" />
             <TextInput
-              value={name}
-              onChangeText={(text) => setName(text)}
+              value={formData.name}
+              onChangeText={(text) => handleInputChange("name", text)}
               className="flex-1 text-xl"
               placeholder="Nome da Lavanderia"
               placeholderTextColor="#d9d9d9"
             />
           </View>
+          {errors.name && (
+            <Text className="text-red-500 -mt-1 mb-2">{errors.name}</Text>
+          )}
 
           {/* CAMPO DE EMAIL */}
           <View
-            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${errors.email ? "border-red-500" : "border-[#d9d9d9]"}`}
+            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${
+              errors.email ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
           >
             <MaterialCommunityIcons name="mail" size={24} color="#d9d9d9" />
             <TextInput
-              value={email}
-              onChangeText={(text) => setEmail(text)}
+              value={formData.email}
+              onChangeText={(text) => handleInputChange("email", text)}
               className="flex-1 text-xl"
-              placeholder="Email"
+              placeholder="Email do Dono"
               placeholderTextColor="#d9d9d9"
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
           </View>
+          {errors.email && (
+            <Text className="text-red-500 -mt-1 mb-2">{errors.email}</Text>
+          )}
 
           <View className="flex flex-row gap-2">
             <Text className="w-[50%] text-[#737373] font-sansBold">
@@ -343,48 +276,58 @@ export default function CorpSignin() {
               Insira o CEP da lavanderia:
             </Text>
           </View>
-          {/* CONTAINER DOS CAMPOS LADO A LADO */}
+          {/* CAMPOS DE CNPJ E CEP */}
           <View className="flex flex-row gap-2 mb-2">
             {/* CAMPO DE CNPJ */}
-            {/* TODO: adicionar validação do cnpj */}
             <MaskInput
-              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${errors.doc ? "border-red-500" : "border-[#d9d9d9]"}`}
-              value={doc}
-              onChangeText={(text) => setDoc(text)}
+              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${
+                errors.doc ? "border-red-500" : "border-[#d9d9d9]"
+              }`}
+              value={formData.doc}
+              onChangeText={(masked) => handleInputChange("doc", masked)}
               placeholderTextColor="#d9d9d9"
               mask={cnpjMask}
             />
 
+            {/* CAMPO DE CEP */}
             <MaskInput
-              className={`w-[49%] justify-center border rounded-xl ${errors.cep ? "border-red-500" : "border-[#d9d9d9]"} p-4 pl-2 text-xl`}
-              value={cep}
-              onChangeText={(text) => {
-                checkingCep(text);
-                setCep(text);
+              className={`w-[49%] justify-center border rounded-xl ${
+                errors.cep ? "border-red-500" : "border-[#d9d9d9]"
+              } p-4 pl-2 text-xl`}
+              value={formData.cep}
+              onChangeText={(masked) => {
+                handleInputChange("cep", masked);
+                checkingCep(setFormData, masked);
               }}
               placeholderTextColor="#d9d9d9"
               mask={cepMask}
+              keyboardType="numeric"
             />
           </View>
+          <View className="flex flex-row gap-2">
+            {errors.doc && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.doc}
+              </Text>
+            )}
+            {errors.cep && (
+              <Text className="text-red-500 -mt-1 mb-2">{errors.cep}</Text>
+            )}
+          </View>
 
-          {/* CAMPOS DE MUNICIPIO E CIDADE */}
+          {/* CAMPOS DE BAIRRO E CIDADE */}
           <View className="flex flex-row gap-2 mb-2">
-            {/* CAMPO DE MUNICÍPIO */}
-            {/* TODO: adicionar api de localização?? */}
             <TextInput
               className="w-[49%] p-4 pl-2 text-xl border rounded-xl border-[#d9d9d9]"
-              value={neighborhood}
-              onChangeText={(text) => setNeighborhood(text)}
-              placeholder="Município"
+              value={formData.neighborhood}
+              onChangeText={(text) => handleInputChange("neighborhood", text)}
+              placeholder="Bairro"
               placeholderTextColor="#d9d9d9"
             />
-
-            {/* CAMPO DE CIDADE */}
-            {/* TODO: adicionar api de localização?? */}
             <TextInput
               className="w-[49%] p-4 pl-2 text-xl border rounded-xl border-[#d9d9d9]"
-              value={city}
-              onChangeText={(text) => setCity(text)}
+              value={formData.city}
+              onChangeText={(text) => handleInputChange("city", text)}
               placeholder="Cidade"
               placeholderTextColor="#d9d9d9"
             />
@@ -392,48 +335,33 @@ export default function CorpSignin() {
 
           {/* CAMPO DE ENDEREÇO */}
           <View
-            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${errors.address ? "border-red-500" : "border-[#d9d9d9]"}`}
+            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${
+              errors.address ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
           >
-            <FontAwesome6
-              name="location-dot"
-              size={24}
-              color={errors.address ? "red" : "#d9d9d9"}
-            />
+            <FontAwesome6 name="location-dot" size={24} color="#d9d9d9" />
             <TextInput
               className="flex-1 text-xl"
-              value={address}
-              onChangeText={(text) => setAddress(text)}
+              value={formData.address}
+              onChangeText={(text) => handleInputChange("address", text)}
               placeholder="Endereço"
               placeholderTextColor="#d9d9d9"
             />
           </View>
-
-          {/* 
-          // account_number
-          // Type:string
-          // required
-
-          // account_type
-          // Type:string
-          // required
-
-          // bank_agency
-          // Type:string
-          // required
-
-          // bank_code
-          // Type:string
-          // required 
-          */}
+          {errors.address && (
+            <Text className="text-red-500 -mt-1 mb-2">{errors.address}</Text>
+          )}
 
           <Text className="w-[90%] text-[#737373] text-lg font-sansBold">
             Insira suas informações bancárias:
           </Text>
           <View className="flex flex-row gap-2 mb-2">
             <TextInput
-              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${errors.accountNumber ? "border-red-500" : "border-[#d9d9d9]"}`}
-              value={accountNumber}
-              onChangeText={(text) => setAccountNumber(text)}
+              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${
+                errors.accountNumber ? "border-red-500" : "border-[#d9d9d9]"
+              }`}
+              value={formData.accountNumber}
+              onChangeText={(text) => handleInputChange("accountNumber", text)}
               placeholder="Número da conta"
               placeholderTextColor="#d9d9d9"
             />
@@ -446,68 +374,90 @@ export default function CorpSignin() {
                   paddingLeft: 8,
                   borderWidth: 1,
                   borderRadius: 12,
-                  borderColor: "#d9d9d9",
+                  borderColor: errors.accountType ? "red" : "#d9d9d9",
                 },
                 isFocus && { borderColor: "#822083" },
               ]}
-              data={data}
+              data={dropdownData}
               maxHeight={300}
               labelField="label"
               valueField="value"
               placeholder={!isFocus ? "Tipo de conta" : "..."}
-              value={value}
+              value={dropdownValue}
               onFocus={() => setIsFocus(true)}
               onBlur={() => setIsFocus(false)}
               onChange={(item) => {
-                setAccountType(item.label);
-                setValue(item.value);
+                handleInputChange("accountType", item.label);
+                setDropdownValue(item.value);
                 setIsFocus(false);
               }}
             />
-
-            {/* <TextInput
-              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${errors.accountType ? "border-red-500" : "border-[#d9d9d9]"}`}
-              value={accountType}
-              onChangeText={(text) => setAccountType(text)}
-              placeholder="Tipo da conta"
-              placeholderTextColor="#d9d9d9"
-            /> */}
+          </View>
+          <View className="flex flex-row gap-2">
+            {errors.accountNumber && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.accountNumber}
+              </Text>
+            )}
+            {errors.accountType && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.accountType}
+              </Text>
+            )}
           </View>
 
           <View className="flex flex-row gap-2 mb-2">
             <TextInput
-              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${errors.bankAgency ? "border-red-500" : "border-[#d9d9d9]"}`}
-              value={bankAgency}
-              onChangeText={(text) => setBankAgency(text)}
-              placeholder="Banco"
+              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${
+                errors.bankAgency ? "border-red-500" : "border-[#d9d9d9]"
+              }`}
+              value={formData.bankAgency}
+              onChangeText={(text) => handleInputChange("bankAgency", text)}
+              placeholder="Agência"
               placeholderTextColor="#d9d9d9"
             />
 
             <TextInput
-              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${errors.bankCode ? "border-red-500" : "border-[#d9d9d9]"}`}
-              value={bankCode}
-              onChangeText={(text) => setBankCode(text)}
-              placeholder="Agência"
+              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${
+                errors.bankCode ? "border-red-500" : "border-[#d9d9d9]"
+              }`}
+              value={formData.bankCode}
+              onChangeText={(text) => handleInputChange("bankCode", text)}
+              placeholder="Código do Banco"
               placeholderTextColor="#d9d9d9"
             />
+          </View>
+          <View className="flex flex-row gap-2">
+            {errors.bankAgency && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.bankAgency}
+              </Text>
+            )}
+            {errors.bankCode && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.bankCode}
+              </Text>
+            )}
           </View>
 
           {/* CAMPO DE SENHA */}
           <Text className="text-[#737373] font-sansBold">Defina sua senha</Text>
           <PasswordInput
-            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${errors.password ? "border-red-500" : "border-[#d9d9d9]"}`}
-            password={password}
-            setPassword={setPassword}
+            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${
+              errors.password ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
+            password={formData.password}
+            setPassword={(text) => handleInputChange("password", text)}
           />
           <BouncyCheckbox
-            useBuiltInState={false}
-            isChecked={hasEightChar}
+            isChecked={formData.password.length >= 8}
             size={16}
             textComponent={
               <Text className="text-sm ml-2">Possui 8 carateres</Text>
             }
             fillColor="purple"
             bounceEffectIn={1}
+            disabled
           />
 
           {/* CAMPO DE CONFIRMAÇÃO DE SENHA */}
@@ -515,14 +465,20 @@ export default function CorpSignin() {
             Confirme sua senha
           </Text>
           <PasswordInput
-            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${errors.confirmPassword ? "border-red-500" : "border-[#d9d9d9]"}`}
-            password={confirmPassword}
-            setPassword={setConfirmPassword}
+            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${
+              errors.confirmPassword ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
+            password={formData.confirmPassword}
+            setPassword={(text) => handleInputChange("confirmPassword", text)}
           />
+          {errors.confirmPassword && (
+            <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+              {errors.confirmPassword}
+            </Text>
+          )}
           <BouncyCheckbox
             className="mb-1"
-            useBuiltInState={false}
-            isChecked={agreeTerms}
+            isChecked={formData.agreeTerms}
             size={16}
             textComponent={
               <Text className="text-sm ml-2">
@@ -530,14 +486,16 @@ export default function CorpSignin() {
                 <Text className="font-sansBold"> termos e condições</Text>
               </Text>
             }
-            fillColor="purple"
+            fillColor={errors.agreeTerms ? "red" : "purple"}
             bounceEffectIn={0.95}
-            onPress={(checked: boolean) => {
-              setAgreeTerms(!agreeTerms);
+            onPress={(isChecked: boolean) => {
+              handleInputChange("agreeTerms", isChecked);
             }}
           />
+          {errors.agreeTerms && (
+            <Text className="text-red-500 -mt-1 mb-2">{errors.agreeTerms}</Text>
+          )}
 
-          {/* BOTÃO DE CONFIRMAÇÃO DO FORMS */}
           <TouchableOpacity
             className="w-full py-3 items-center border-2 border-black rounded-lg"
             onPress={handleSubmit}
@@ -547,7 +505,6 @@ export default function CorpSignin() {
             </Text>
           </TouchableOpacity>
 
-          {/* TEXTO PARA LEVAR AO LOGIN EMPRESARIAL */}
           <View className="flex flex-row items-center justify-center">
             <Text className="text-[#545454]">
               Já tem uma conta empresarial?{" "}

@@ -7,7 +7,7 @@ import Feather from "@expo/vector-icons/Feather";
 
 import Text from "./MyText";
 
-export default function NotificationBtn() {
+export default function NotificationBtn({ color }: { color?: string }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const toggleModal = () => {
@@ -60,7 +60,11 @@ export default function NotificationBtn() {
         </View>
       </Modal>
       <TouchableOpacity onPress={toggleModal}>
-        <MaterialCommunityIcons name="bell" size={32} color="#080030" />
+        <MaterialCommunityIcons
+          name="bell"
+          size={32}
+          color={color || "#080030"}
+        />
       </TouchableOpacity>
     </>
   );

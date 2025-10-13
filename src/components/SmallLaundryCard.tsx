@@ -5,7 +5,18 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import Text from "./MyText";
 import { Laundry } from "@/types";
 
+// TODO: pegar a lat e lng do usuário e calcular a distancia
+
 export default function SmallLaundryCard({ item }: { item: Laundry }) {
+  const makeRate = (grade: number[]) => {
+    let rate = 0;
+    grade.forEach((g) => {
+      rate += g;
+    });
+    const finalRate = rate / grade.length;
+    return finalRate;
+  };
+
   return (
     <View className="flex flex-row gap-2 rounded-lg p-3 mr-4 w-72 h-32 border border-[#d9d9d9]">
       <View className="w-1 h-full bg-[#a391c2] rounded-xl"></View>
@@ -14,7 +25,9 @@ export default function SmallLaundryCard({ item }: { item: Laundry }) {
           {item.name}
         </Text>
         <View className="flex-row items-center mt-2">
-          <Text className="text-sm text-yellow-500 mr-1">{item.grade}</Text>
+          <Text className="text-sm text-yellow-500 mr-1">
+            {makeRate(item.grade).toFixed(1)}
+          </Text>
           <Text className="text-yellow-500">★★★★★</Text>
         </View>
         <View className="flex flex-row justify-between">
@@ -28,9 +41,7 @@ export default function SmallLaundryCard({ item }: { item: Laundry }) {
         {/* <Image source={item.img} className="w-24 h-24 rounded-lg" /> */}
         <View className="flex-1 bg-purple-700/30 p-2 rounded-tl-lg rounded-br-lg items-center">
           <Ionicons name="location-sharp" size={20} color="white" />
-          <Text className="text-white text-xs font-bold">
-            {item.distance} minutos
-          </Text>
+          <Text className="text-white text-xs font-bold">3 minutos</Text>
           <Text className="text-white text-xs text-center">Chega ás 12:01</Text>
         </View>
       </View>

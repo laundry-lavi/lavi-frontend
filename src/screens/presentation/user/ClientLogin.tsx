@@ -13,11 +13,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { Text, BackArrow, PasswordInput } from "@/components";
-
-interface Customer {
-  email: string;
-  password: string;
-}
+import { UserLogin } from "@/types";
 
 const dados = {
   email: "teste@gmail.com",
@@ -28,14 +24,16 @@ export default function ClientLogin() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const navigation = useNavigation<NavigationProp<any>>();
-
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+
   const validateFields = () => {
     const newErrors: { [key: string]: string | null } = {};
 
+    // Validação de email
     if (!email.trim() || !email.includes("@"))
       newErrors.email = "O email é obrigatório.";
 
+    // Validação de senha
     if (password.length < 8) {
       newErrors.password = "A senha deve ter pelo menos 8 caracteres.";
     }
@@ -46,7 +44,7 @@ export default function ClientLogin() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const loginCostumer = (customer: Customer) => {
+  const loginCostumer = (customer: UserLogin) => {
     fetch("http://52.67.221.152/customer/sign", {
       method: "PUT",
       headers: {
@@ -69,7 +67,7 @@ export default function ClientLogin() {
     const isFormValid = validateFields();
     if (isFormValid) {
       Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
-      const customer: Customer = {
+      const customer: UserLogin = {
         email: email,
         password: password,
       };

@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -23,19 +23,16 @@ import BouncyCheckbox from "react-native-bouncy-checkbox";
 import MaskInput from "react-native-mask-input";
 
 import { Text, BackArrow, PasswordInput } from "@/components";
+import { UserSignin, UserFormData } from "@/types";
+import {
+  cepMask,
+  birthDateMask,
+  cnpjMask,
+  cpfMask,
+} from "@/constants/inputMasks";
+import { checkingCep } from "@/functions";
 
-interface Customer {
-  birthDate: string;
-  doc: string;
-  email: string;
-  gender: string;
-  isPj: boolean;
-  name: string;
-  password: string;
-  profileUrl: string | null;
-}
-
-const data = [
+const dropdownData = [
   { label: "Masculino", value: "1" },
   { label: "Feminino", value: "2" },
   { label: "Prefiro não dizer", value: "3" },
@@ -59,72 +56,34 @@ export default function ClientSignin() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [hasEightChar, setHasEightChar] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
-  const [name, setName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [cep, setCep] = useState("");
-  const [city, setCity] = useState("");
-  const [neighborhood, setNeighborhood] = useState("");
-  const [address, setAddress] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [gender, setGender] = useState("");
-  const [doc, setDoc] = useState("");
-  const [isPj, setIsPj] = useState(false);
-  const cpfMask = [
-    /\d/,
-    /\d/,
-    /\d/,
-    ".",
-    /\d/,
-    /\d/,
-    /\d/,
-    ".",
-    /\d/,
-    /\d/,
-    /\d/,
-    "-",
-    /\d/,
-    /\d/,
-  ];
-  const cnpjMask = [
-    /\d/,
-    /\d/,
-    ".",
-    /\d/,
-    /\d/,
-    /\d/,
-    ".",
-    /\d/,
-    /\d/,
-    /\d/,
-    "/",
-    /\d/,
-    /\d/,
-    /\d/,
-    /\d/,
-    "-",
-    /\d/,
-    /\d/,
-  ];
-  const cepMask = [/\d/, /\d/, /\d/, /\d/, /\d/, "-", /\d/, /\d/, /\d/];
-  const birthDateMask = [
-    /\d/,
-    /\d/,
-    "/",
-    /\d/,
-    /\d/,
-    "/",
-    /\d/,
-    /\d/,
-    /\d/,
-    /\d/,
-  ];
+  const [formData, setFormData] = useState<UserFormData>({
+    name: "",
+    lastName: "",
+    email: "",
+    cep: "",
+    city: "",
+    neighborhood: "",
+    address: "",
+    birthDate: "",
+    gender: "",
+    doc: "",
+    isPj: false,
+  });
+  const [value, setValue] = useState(null);
+  const [isFocus, setIsFocus] = useState(false);
+  const [date, setDate] = useState(new Date(1598051730000));
+  const [mode, setMode] = useState<"date" | "time">("date");
+  const [show, setShow] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
 
   useEffect(() => {
-    setBirthDate(date.toLocaleString());
+    setFormData((prevData) => ({
+      ...prevData,
+      birthDate: date.toLocaleString().slice(0, 10),
+    }));
     setHasEightChar(false);
     if (password.length >= 8) setHasEightChar(true);
-  }, [password]);
+  }, [password, date]);
 
   const createCustomer = async ({
     name,
@@ -135,7 +94,7 @@ export default function ClientSignin() {
     gender,
     password,
     profileUrl,
-  }: Customer) => {
+  }: UserSignin) => {
     await fetch("http://52.67.221.152/customer", {
       method: "POST",
       headers: {
@@ -144,61 +103,59 @@ export default function ClientSignin() {
       body: JSON.stringify({
         customer: {
           profile_url: profileUrl,
-          name: dados.name + " " + dados.lastName,
-          email: dados.email,
+          name: name,
+          email: email,
           is_pj: isPj,
-          doc: dados.cpf,
+          doc: doc,
           birth_date: birthDate,
           gender: gender,
-          password: dados.senha,
+          password: password,
         },
       }),
     })
       .then((response) => response.json())
       .then((body) => {
         console.log(body);
-        // navigation.navigate("InitialRoute");
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-    // fetch("http://52.67.221.152/customers").then((response) => {
-    //   console.log(response);
-    // });
-  };
-
-  const checkingCep = async (cep: string) => {
-    fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`)
-      .then((response) => response.json())
-      .then((body) => {
-        setCity(body.city);
-        setNeighborhood(body.neighborhood);
-        setAddress(body.street);
+        navigation.navigate("InitialRoute");
       })
       .catch((err) => {
         console.error(err);
       });
   };
 
-  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+  const isOldEnough = (birthDate: string): boolean => {
+    if (!birthDate) return false;
+
+    const [day, month, year] = birthDate.split("/").map(Number);
+    const birthDateObj = new Date(year, month - 1, day);
+    const eighteenYearsAgo = new Date();
+    eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+
+    return birthDateObj <= eighteenYearsAgo;
+  };
 
   const validateFields = () => {
     const newErrors: { [key: string]: string | null } = {};
 
     // Validação de campos obrigatórios
-    if (!name.trim()) newErrors.name = "O nome é obrigatório.";
-    if (!lastName.trim()) newErrors.lastName = "O sobrenome é obrigatório.";
-    if (!address.trim()) newErrors.address = "O endereço é obrigatório.";
-    if (!email.trim() || !email.includes("@"))
+    if (!formData.name.trim()) newErrors.name = "O nome é obrigatório.";
+    if (!formData.lastName.trim())
+      newErrors.lastName = "O sobrenome é obrigatório.";
+    if (!formData.gender.trim()) newErrors.gender = "O gênero é obrigatório.";
+    if (!formData.address.trim())
+      newErrors.address = "O endereço é obrigatório.";
+    if (!formData.email.trim() || !formData.email.includes("@"))
       newErrors.email = "O email é obrigatório.";
+    if (!isOldEnough(formData.birthDate))
+      newErrors.birthDate = "Você deve ter pelo menos 18 anos.";
 
     // Validação de CPF
-    if (!doc) {
+    if (!formData.doc) {
       newErrors.doc = "O CPF/CNPJ é obrigatório.";
     }
 
     // Validação de CEP
-    if (!cep) {
+    if (!formData.cep) {
       newErrors.cep = "O CEP é obrigatório.";
     }
 
@@ -218,10 +175,6 @@ export default function ClientSignin() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const [date, setDate] = useState(new Date(1598051730000));
-  const [mode, setMode] = useState("date");
-  const [show, setShow] = useState(false);
-
   const onChange = (
     event: DateTimePickerEvent,
     selectedDate: Date | undefined
@@ -230,10 +183,9 @@ export default function ClientSignin() {
     const currentDate = selectedDate;
     setShow(false);
     setDate(currentDate);
-    setBirthDate(currentDate.toLocaleString().slice(0, 10));
   };
 
-  const showMode = (currentMode: string) => {
+  const showMode = (currentMode: SetStateAction<"date" | "time">) => {
     setShow(true);
     setMode(currentMode);
   };
@@ -242,22 +194,17 @@ export default function ClientSignin() {
     showMode("date");
   };
 
-  const [value, setValue] = useState(null);
-  const [isFocus, setIsFocus] = useState(false);
-
   const handleSubmit = () => {
-    const isFormValid = validateFields();
-    if (isFormValid) {
+    if (validateFields()) {
       Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
-      // Aqui você enviaria os dados para a sua API
-      const customer: Customer = {
-        name: `${name} ${lastName}`,
-        email: email,
+      const customer: UserSignin = {
+        name: `${formData.name} ${formData.lastName}`,
+        email: formData.email,
         password: password,
-        birthDate: birthDate.slice(0, 10),
-        doc: doc,
-        gender: gender,
-        isPj: isPj,
+        birthDate: formData.birthDate,
+        doc: formData.doc,
+        gender: formData.gender,
+        isPj: formData.isPj,
         profileUrl: null,
       };
       createCustomer(customer);
@@ -286,32 +233,51 @@ export default function ClientSignin() {
         </Text>
 
         {/* CONTAINER DO FORMS */}
-        {/* TODO: Adicionar verificação de preenchimento dos campos e termos */}
         <ScrollView className="w-[95vw] h-[74vh] mx-auto my-3 p-4 pb-10 bg-white border rounded-xl border-[#d9d9d9]">
           {/* CAMPO DE NOME E SOBRENOME */}
           <View className="flex flex-row gap-2 mb-3">
             {/* CAMPO DE NOME */}
             <TextInput
-              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${errors.name ? "border-red-500" : "border-[#d9d9d9]"}`}
-              value={name}
-              onChangeText={(text) => setName(text)}
+              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${
+                errors.name ? "border-red-500" : "border-[#d9d9d9]"
+              }`}
+              value={formData.name}
+              onChangeText={(text) => setFormData({ ...formData, name: text })}
               placeholder="Nome"
               placeholderTextColor="#d9d9d9"
             />
 
             {/* CAMPO DE SOBRENOME */}
             <TextInput
-              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${errors.lastName ? "border-red-500" : "border-[#d9d9d9]"}`}
-              value={lastName}
-              onChangeText={(text) => setLastName(text)}
+              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${
+                errors.lastName ? "border-red-500" : "border-[#d9d9d9]"
+              }`}
+              value={formData.lastName}
+              onChangeText={(text) =>
+                setFormData({ ...formData, lastName: text })
+              }
               placeholder="Sobrenome"
               placeholderTextColor="#d9d9d9"
             />
           </View>
+          <View className="flex flex-row gap-2">
+            {errors.name && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.name}
+              </Text>
+            )}
+            {errors.lastName && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.lastName}
+              </Text>
+            )}
+          </View>
 
           {/* CAMPO DE EMAIL */}
           <View
-            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${errors.email ? "border-red-500" : "border-[#d9d9d9]"}`}
+            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${
+              errors.email ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
           >
             <MaterialCommunityIcons
               name="mail"
@@ -320,12 +286,15 @@ export default function ClientSignin() {
             />
             <TextInput
               className="flex-1 text-xl"
-              value={email}
-              onChangeText={(text) => setEmail(text)}
+              value={formData.email}
+              onChangeText={(text) => setFormData({ ...formData, email: text })}
               placeholder="Email"
               placeholderTextColor="#d9d9d9"
             />
           </View>
+          {errors.lastName && (
+            <Text className="text-red-500 -mt-1 mb-2">{errors.lastName}</Text>
+          )}
 
           {show && (
             <DateTimePicker
@@ -341,14 +310,16 @@ export default function ClientSignin() {
           <Text className="w-[50%] text-[#737373] font-sansBold">
             CPF ou CNPJ:
           </Text>
-          <View className="flex flex-row gap-2 mb-1">
+          <View className="flex flex-row gap-2 mb-2">
             {/* CAMPO DE CPF/CNPJ */}
             <MaskInput
-              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${errors.doc ? "border-red-500" : "border-[#d9d9d9]"}`}
-              value={doc}
-              onChangeText={(text) => setDoc(text)}
+              className={`w-[49%] p-4 pl-2 text-xl border rounded-xl ${
+                errors.doc ? "border-red-500" : "border-[#d9d9d9]"
+              }`}
+              value={formData.doc}
+              onChangeText={(text) => setFormData({ ...formData, doc: text })}
               placeholderTextColor="#d9d9d9"
-              mask={isPj ? cnpjMask : cpfMask}
+              mask={formData.isPj ? cnpjMask : cpfMask}
             />
 
             {/* CAMPO DE GÊNERO */}
@@ -360,11 +331,11 @@ export default function ClientSignin() {
                   paddingLeft: 8,
                   borderWidth: 1,
                   borderRadius: 12,
-                  borderColor: "#d9d9d9",
+                  borderColor: errors.gender ? "red" : "#d9d9d9",
                 },
                 isFocus && { borderColor: "#822083" },
               ]}
-              data={data}
+              data={dropdownData}
               maxHeight={300}
               labelField="label"
               valueField="value"
@@ -373,15 +344,30 @@ export default function ClientSignin() {
               onFocus={() => setIsFocus(true)}
               onBlur={() => setIsFocus(false)}
               onChange={(item) => {
-                setGender(item.label);
+                setFormData((prevData) => ({
+                  ...prevData,
+                  gender: item.label,
+                }));
                 setValue(item.value);
                 setIsFocus(false);
               }}
             />
           </View>
+          <View className="flex flex-row gap-2">
+            {errors.doc && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.doc}
+              </Text>
+            )}
+            {errors.gender && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.gender}
+              </Text>
+            )}
+          </View>
           <BouncyCheckbox
             useBuiltInState={false}
-            isChecked={isPj}
+            isChecked={formData.isPj}
             size={16}
             textComponent={
               <Text className="text-sm ml-2">Sou PJ (Pessoa Jurídica)</Text>
@@ -389,7 +375,10 @@ export default function ClientSignin() {
             fillColor="purple"
             bounceEffectIn={0.95}
             onPress={(checked: boolean) => {
-              setIsPj(!isPj);
+              setFormData((prevData) => ({
+                ...prevData,
+                isPj: !prevData.isPj,
+              }));
             }}
             className="mb-3"
           />
@@ -403,32 +392,48 @@ export default function ClientSignin() {
             </Text>
           </View>
           {/* CAMPO DE CEP E ANIVERSÁRIO */}
-          <View className="flex flex-row gap-2 mb-3">
+          <View className="flex flex-row gap-2 mb-2">
             {/* CAMPO DE ANIVERSÁRIO */}
             <TouchableOpacity
               onPress={showDatepicker}
-              className={`w-[49%] justify-center border rounded-xl border-[#d9d9d9]`}
+              className={`w-[49%] justify-center border rounded-xl ${errors.birthDate ? "border-red-500" : "border-[#d9d9d9]"}`}
             >
               <MaskInput
                 className="p-4 pl-2 text-xl"
-                value={birthDate}
-                onChangeText={(text) => setBirthDate(text)}
-                placeholder="Aniversário"
+                value={formData.birthDate}
+                onChangeText={(text) =>
+                  setFormData({ ...formData, birthDate: text })
+                }
+                placeholder="Data de nascimento"
                 placeholderTextColor="#d9d9d9"
                 editable={false}
                 mask={birthDateMask}
               />
             </TouchableOpacity>
             <MaskInput
-              className={`w-[49%] justify-center border rounded-xl ${errors.cep ? "border-red-500" : "border-[#d9d9d9]"} p-4 pl-2 text-xl`}
-              value={cep}
+              className={`w-[49%] justify-center border rounded-xl ${
+                errors.cep ? "border-red-500" : "border-[#d9d9d9]"
+              } p-4 pl-2 text-xl`}
+              value={formData.cep}
               onChangeText={(text) => {
-                checkingCep(text);
-                setCep(text);
+                checkingCep(setFormData, text);
+                setFormData({ ...formData, cep: text });
               }}
               placeholderTextColor="#d9d9d9"
               mask={cepMask}
             />
+          </View>
+          <View className="flex flex-row gap-2">
+            {errors.birthDate && (
+              <Text className="w-[49%] text-red-500 -mt-1 mb-2">
+                {errors.birthDate}
+              </Text>
+            )}
+            {errors.cep && (
+              <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+                {errors.cep}
+              </Text>
+            )}
           </View>
 
           {/* CAMPOS DE MUNICIPIO E CIDADE */}
@@ -437,8 +442,10 @@ export default function ClientSignin() {
             {/* TODO: adicionar api de localização?? */}
             <TextInput
               className="w-[49%] p-4 pl-2 text-xl border rounded-xl border-[#d9d9d9]"
-              value={neighborhood}
-              onChangeText={(text) => setNeighborhood(text)}
+              value={formData.neighborhood}
+              onChangeText={(text) =>
+                setFormData({ ...formData, neighborhood: text })
+              }
               placeholder="Município"
               placeholderTextColor="#d9d9d9"
             />
@@ -447,8 +454,8 @@ export default function ClientSignin() {
             {/* TODO: adicionar api de localização?? */}
             <TextInput
               className="w-[49%] p-4 pl-2 text-xl border rounded-xl border-[#d9d9d9]"
-              value={city}
-              onChangeText={(text) => setCity(text)}
+              value={formData.city}
+              onChangeText={(text) => setFormData({ ...formData, city: text })}
               placeholder="Cidade"
               placeholderTextColor="#d9d9d9"
             />
@@ -456,7 +463,9 @@ export default function ClientSignin() {
 
           {/* CAMPO DE ENDEREÇO */}
           <View
-            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${errors.address ? "border-red-500" : "border-[#d9d9d9]"}`}
+            className={`flex flex-row items-center gap-2 p-1 pl-2 mb-2 border rounded-xl ${
+              errors.address ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
           >
             <FontAwesome6
               name="location-dot"
@@ -465,8 +474,10 @@ export default function ClientSignin() {
             />
             <TextInput
               className="flex-1 text-xl"
-              value={address}
-              onChangeText={(text) => setAddress(text)}
+              value={formData.address}
+              onChangeText={(text) =>
+                setFormData({ ...formData, address: text })
+              }
               placeholder="Endereço"
               placeholderTextColor="#d9d9d9"
             />
@@ -475,7 +486,9 @@ export default function ClientSignin() {
           {/* CAMPO DE SENHA */}
           <Text className="text-[#737373] font-sansBold">Defina sua senha</Text>
           <PasswordInput
-            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${errors.password ? "border-red-500" : "border-[#d9d9d9]"}`}
+            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${
+              errors.password ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
             password={password}
             setPassword={setPassword}
           />
@@ -496,10 +509,17 @@ export default function ClientSignin() {
             Confirme sua senha
           </Text>
           <PasswordInput
-            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${errors.confirmPassword ? "border-red-500" : "border-[#d9d9d9]"}`}
+            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${
+              errors.confirmPassword ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
             password={confirmPassword}
             setPassword={setConfirmPassword}
           />
+          {errors.confirmPassword && (
+            <Text className="w-[50%] text-red-500 -mt-1 mb-2">
+              {errors.confirmPassword}
+            </Text>
+          )}
           <BouncyCheckbox
             useBuiltInState={false}
             isChecked={agreeTerms}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   SafeAreaView,
   View,
@@ -8,6 +8,8 @@ import {
   TextInput,
   ImageBackground,
 } from "react-native";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
@@ -18,6 +20,8 @@ import {
   PasswordInputProps,
   PasswordVisibilityState,
 } from "@/types";
+import { AuthenticationContext } from "@/contexts/AuthenticationContext";
+import { EmployeeProfile, LaundryProfile } from "@/screens/laundryScreens";
 
 const user: UserProfile = {
   name: "Rafael Teodoro Santos",
@@ -40,7 +44,9 @@ const orders: Order[] = [
 ];
 
 export default function Profile() {
+  const navigation = useNavigation<NavigationProp<any>>();
   const [activeFilter, setActiveFilter] = useState("Em andamento");
+  const { isLaundry } = useContext(AuthenticationContext);
 
   const [passwordVisibility, setPasswordVisibility] =
     useState<PasswordVisibilityState>({
@@ -55,7 +61,9 @@ export default function Profile() {
     }));
   };
 
-  return (
+  return isLaundry ? (
+    <EmployeeProfile />
+  ) : (
     <SafeAreaView>
       <ImageBackground
         className="w-full h-full p-3 pt-20"
@@ -69,7 +77,10 @@ export default function Profile() {
             />
             <View className="w-full bg-white border border-gray-200 rounded-2xl p-5 -mt-12 pt-12 z-0 ">
               {/* Ícone de Configurações */}
-              <TouchableOpacity className="absolute top-4 right-4">
+              <TouchableOpacity
+                onPress={() => navigation.navigate("SettingsScreen")}
+                className="absolute top-4 right-4"
+              >
                 <View className="w-10 h-10 rounded-full border border-gray-300 justify-center items-center">
                   <Ionicons name="settings-outline" size={24} color="#4B5563" />
                 </View>

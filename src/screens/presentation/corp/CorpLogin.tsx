@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   TextInput,
@@ -12,10 +12,12 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { Text, BackArrow, PasswordInput } from "@/components";
+import { AuthenticationContext } from "@/contexts/AuthenticationContext";
 
 export default function CorpLogin() {
   const [password, setPassword] = useState("");
   const navigation = useNavigation<NavigationProp<any>>();
+  const { setIsLaundryTrue } = useContext(AuthenticationContext);
 
   return (
     <View>
@@ -42,10 +44,10 @@ export default function CorpLogin() {
 
           {/* CAMPO DE CÓDIGO DA LAVANDERIA */}
           <View className="flex flex-row items-center gap-2 p-1 pl-2 border rounded-xl border-[#d9d9d9]">
-            <MaterialCommunityIcons name="security" size={24} color="#d9d9d9" />
+            <MaterialCommunityIcons name="mail" size={24} color="#d9d9d9" />
             <TextInput
               className="flex-1 text-xl"
-              placeholder="Código da Lavanderia"
+              placeholder="Seu email"
               placeholderTextColor="#d9d9d9"
             />
           </View>
@@ -66,7 +68,10 @@ export default function CorpLogin() {
           {/* BOTÃO DE CONFIRMAÇÃO DO FORMS */}
           <TouchableOpacity
             className="w-full py-3 items-center bg-[#080030] rounded-lg"
-            onPress={() => navigation.navigate("InitialRoute")}
+            onPress={() => {
+              setIsLaundryTrue();
+              navigation.navigate("InitialRoute");
+            }}
           >
             <Text className="text-white text-lg font-sansBold">Login</Text>
           </TouchableOpacity>
@@ -74,7 +79,9 @@ export default function CorpLogin() {
           {/* TEXTO PARA LEVAR AO LOGIN EMPRESARIAL */}
           <View className="flex flex-row items-center justify-center mb-10">
             <Text className="text-[#545454]">Não tem uma conta? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate("CorpLogin")}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("OwnerRegister")}
+            >
               <Text className="text-[#822083] underline">Cadastrar-se</Text>
             </TouchableOpacity>
           </View>

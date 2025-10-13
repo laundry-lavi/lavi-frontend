@@ -1,10 +1,14 @@
+import React, { useContext } from "react";
 import { View, TouchableOpacity, Image, ImageBackground } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 import { Text, BackArrow } from "@/components";
+import { AuthenticationContext } from "@/contexts/AuthenticationContext";
 
 export default function CorpWelcome() {
   const navigation = useNavigation<NavigationProp<any>>();
+  const { isLaundry, toggleIsLaundry } = useContext(AuthenticationContext);
+
   return (
     <View>
       <ImageBackground
@@ -13,23 +17,25 @@ export default function CorpWelcome() {
       >
         <BackArrow />
         <View className="flex-[2] items-center justify-between mb-14">
-          <Image
-            className="h-[140]"
-            source={require("assets/logo.png")}
-            resizeMode="contain"
-          />
+          <TouchableOpacity>
+            <Image
+              className="h-[140]"
+              source={require("assets/logo.png")}
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
           <Text className="text-3xl font-sansBold text-[#822083]">
             Olá, Bem-Vindo!
           </Text>
           <Text className="text-xl w-[60%] text-center">
-            <Text className="font-sansBold">Funcionário/Empresa</Text> faça o
-            seu login ou cadastro abaixo
+            <Text className="font-sansBold">Dono / Funcionário</Text> faça o seu
+            login ou cadastro abaixo
           </Text>
         </View>
         <View className="flex-[4] items-center justify-center gap-3">
           <TouchableOpacity
             className="w-[80%] py-3 items-center bg-[#822083] rounded-lg"
-            onPress={() => navigation.navigate("CorpSignin")}
+            onPress={() => navigation.navigate("OwnerRegister")}
           >
             <Text className="text-white text-lg font-sansBold">Cadastro</Text>
           </TouchableOpacity>
