@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   Image,
+  Alert,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
@@ -12,12 +13,111 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { Text, BackArrow, PasswordInput } from "@/components";
-import { AuthenticationContext } from "@/contexts/AuthenticationContext";
+import { AuthenticationContext, OwnerContext } from "@/contexts/";
+import { getMember } from "@/functions/";
+
+interface laundryLoginData {
+  email: string;
+  password: string;
+}
 
 export default function CorpLogin() {
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
   const navigation = useNavigation<NavigationProp<any>>();
   const { setIsLaundryTrue } = useContext(AuthenticationContext);
+  const { setOwnerData } = useContext(OwnerContext);
+
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+  const [formMessage, setFormMessage] = useState<{
+    title: string;
+    msg: string;
+  }>({
+    title: "Erro",
+    msg: "Erro ao autenticar. Tente novamente mais tarde.",
+  });
+
+  const validateFields = () => {
+    const newErrors: { [key: string]: string | null } = {};
+
+    if (!email.trim() || !email.includes("@"))
+      newErrors.email = "O email é inválido.";
+    if (password.length < 8)
+      newErrors.password = "A senha deve ter pelo menos 8 caracteres.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const authenticateLaundry = (laundry: laundryLoginData) => {
+    fetch(
+      "https://illuminational-earlene-incoherently.ngrok-free.dev/members/auth",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: laundry.email,
+          password: laundry.password,
+        }),
+      }
+    )
+      .then((response) => response.json())
+      .then((body) => {
+        if (body.details == "E-mail ou Senha incorretos.") {
+          setFormMessage({
+            title: "Erro",
+            msg: "E-mail ou Senha incorretos. Tente novamente.",
+          });
+        } else if (body.token) {
+          Alert.alert("Sucesso", "Login realizado com sucesso!");
+          let member = null;
+          getMember(email).then((m) => {
+            member = m;
+            setOwnerData({
+              name: member.name,
+              email: member.email,
+              cpf: member.cpf,
+              memberId: member.id,
+              token: body.token,
+              role: member.roles[0],
+            });
+          });
+          navigation.navigate("InitialRoute");
+        } else {
+          setFormMessage({
+            title: "Erro",
+            msg: "Erro ao autenticar. Tente novamente mais tarde.",
+          });
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao autenticar:", err);
+        setFormMessage({
+          title: "Erro",
+          msg: "Erro ao autenticar. Tente novamente mais tarde.",
+        });
+      });
+  };
+
+  const handleSubmit = () => {
+    if (validateFields()) {
+      const laundryData: laundryLoginData = {
+        email: email,
+        password: password,
+      };
+      authenticateLaundry(laundryData);
+    } else {
+      setFormMessage({
+        title: "Erro",
+        msg: "Por favor, corrija os campos destacados.",
+      });
+      setTimeout(() => {
+        Alert.alert(formMessage.title, formMessage.msg);
+      }, 500);
+    }
+  };
 
   return (
     <View>
@@ -42,23 +142,51 @@ export default function CorpLogin() {
             Que bom ter você de volta!
           </Text>
 
-          {/* CAMPO DE CÓDIGO DA LAVANDERIA */}
-          <View className="flex flex-row items-center gap-2 p-1 pl-2 border rounded-xl border-[#d9d9d9]">
+          {/* CAMPO DE EMAIL */}
+          <View
+            className={`flex flex-row items-center gap-2 p-1 pl-2 border rounded-xl ${
+              errors.email ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
+          >
             <MaterialCommunityIcons name="mail" size={24} color="#d9d9d9" />
             <TextInput
               className="flex-1 text-xl"
               placeholder="Seu email"
               placeholderTextColor="#d9d9d9"
+              onChangeText={(text) => setEmail(text)}
+              value={email}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              textContentType="emailAddress"
+              importantForAutofill="yes"
+              autoComplete="email"
             />
           </View>
+          {errors.email && (
+            <Text className="w-full text-red-500 -mt-2 mb-1">
+              {errors.email}
+            </Text>
+          )}
 
           {/* CAMPO DE SENHA */}
-          <PasswordInput password={password} setPassword={setPassword} />
+          <PasswordInput
+            style={`flex flex-row items-center gap-2 p-2 mb-1 border rounded-xl ${
+              errors.password ? "border-red-500" : "border-[#d9d9d9]"
+            }`}
+            password={password}
+            setPassword={setPassword}
+          />
+          {errors.password && (
+            <Text className="w-full text-red-500 -mt-2 mb-1">
+              {errors.password}
+            </Text>
+          )}
 
           {/* TEXTO ESQUECEU SUA SENHA */}
           <TouchableOpacity
             onPress={() => navigation.navigate("ForgotPassword")}
-            className="mb-5"
+            className="mb-3"
           >
             <Text className="text-[#737373] underline">
               Esqueceu sua senha?
@@ -70,7 +198,7 @@ export default function CorpLogin() {
             className="w-full py-3 items-center bg-[#080030] rounded-lg"
             onPress={() => {
               setIsLaundryTrue();
-              navigation.navigate("InitialRoute");
+              handleSubmit();
             }}
           >
             <Text className="text-white text-lg font-sansBold">Login</Text>

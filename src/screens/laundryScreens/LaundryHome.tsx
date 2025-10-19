@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import PieChart, { Slice } from "react-native-pie-chart";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { NotificationBtn, BackArrow } from "@/components";
+import { OwnerContext } from "@/contexts";
 
 const bgImages = [
   require("assets/ordersImage.png"),
@@ -60,6 +61,7 @@ const LegendItem = ({ item }: { item: (typeof legendData)[0] }) => (
 export default function LaundryHomeScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
   const rating = 4.2;
+  const { ownerData } = useContext(OwnerContext);
 
   const OrderCard = ({
     imageUri,

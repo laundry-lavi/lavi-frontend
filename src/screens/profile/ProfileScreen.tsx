@@ -20,7 +20,7 @@ import {
   PasswordInputProps,
   PasswordVisibilityState,
 } from "@/types";
-import { AuthenticationContext } from "@/contexts/AuthenticationContext";
+import { AuthenticationContext, OwnerContext } from "@/contexts";
 import { EmployeeProfile, LaundryProfile } from "@/screens/laundryScreens";
 
 const user: UserProfile = {
@@ -47,6 +47,7 @@ export default function Profile() {
   const navigation = useNavigation<NavigationProp<any>>();
   const [activeFilter, setActiveFilter] = useState("Em andamento");
   const { isLaundry } = useContext(AuthenticationContext);
+  const { ownerData } = useContext(OwnerContext);
 
   const [passwordVisibility, setPasswordVisibility] =
     useState<PasswordVisibilityState>({
@@ -62,7 +63,11 @@ export default function Profile() {
   };
 
   return isLaundry ? (
-    <EmployeeProfile />
+    ownerData.role === "owner" ? (
+      <LaundryProfile />
+    ) : (
+      <EmployeeProfile />
+    )
   ) : (
     <SafeAreaView>
       <ImageBackground

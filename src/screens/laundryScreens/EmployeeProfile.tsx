@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
@@ -10,8 +10,9 @@ import {
   ImageBackground,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+
+import { OwnerContext } from "@/contexts";
 
 // --- Componente Reutilizável para os Campos de Informação ---
 interface InfoFieldProps {

@@ -1,37 +1,43 @@
 import { createContext, useState, Dispatch, SetStateAction } from "react";
 
-type FormData = {
+type OwnerData = {
   name: string;
   email: string;
   cpf: string;
-  password: string;
+  memberId: string;
+  token?: string;
+  role: string;
 };
 
 type OwnerContextType = {
-  formData: FormData;
-  setFormData: Dispatch<SetStateAction<FormData>>;
+  ownerData: OwnerData;
+  setOwnerData: Dispatch<SetStateAction<OwnerData>>;
 };
 
 export const OwnerContext = createContext<OwnerContextType>({
-  formData: {
+  ownerData: {
     name: "",
     email: "",
     cpf: "",
-    password: "",
+    memberId: "",
+    token: "",
+    role: "",
   },
-  setFormData: () => {},
+  setOwnerData: () => {},
 });
 
 export const OwnerProvider = ({ children }: { children: React.ReactNode }) => {
-  const [formData, setFormData] = useState<FormData>({
+  const [ownerData, setOwnerData] = useState<OwnerData>({
     name: "",
     email: "",
     cpf: "",
-    password: "",
+    memberId: "",
+    token: "",
+    role: "",
   });
 
   return (
-    <OwnerContext.Provider value={{ formData, setFormData }}>
+    <OwnerContext.Provider value={{ ownerData, setOwnerData }}>
       {children}
     </OwnerContext.Provider>
   );
