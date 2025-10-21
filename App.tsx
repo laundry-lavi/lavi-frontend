@@ -35,7 +35,11 @@ import {
   OrderDetails,
 } from "@/screens/laundryScreens/";
 
-import { AuthenticationProvider, OwnerProvider } from "./src/contexts/";
+import {
+  AuthenticationProvider,
+  OwnerProvider,
+  LaundryProvider,
+} from "./src/contexts/";
 import "./global.css";
 
 const Stack = createStackNavigator();
@@ -63,52 +67,66 @@ export default function App() {
       <NavigationContainer>
         <SafeAreaProvider>
           <OwnerProvider>
-            <AuthenticationProvider>
-              <SafeAreaView style={{ flex: 1 }}>
-                <StatusBar style="auto" hidden={false} />
-                <Stack.Navigator
-                  initialRouteName="Welcome"
-                  screenOptions={{ headerShown: false }}
-                >
-                  {/* <Stack.Screen name="Presentation1" component={Presentation1} />
+            <LaundryProvider>
+              <AuthenticationProvider>
+                <SafeAreaView style={{ flex: 1 }}>
+                  <StatusBar style="auto" hidden={false} />
+                  <Stack.Navigator
+                    initialRouteName="Welcome"
+                    screenOptions={{ headerShown: false }}
+                  >
+                    {/* <Stack.Screen name="Presentation1" component={Presentation1} />
               <Stack.Screen name="Presentation2" component={Presentation2} />
               <Stack.Screen name="Presentation3" component={Presentation3} /> */}
-                  <Stack.Screen name="Welcome" component={Welcome} />
-                  <Stack.Screen name="ClientLogin" component={ClientLogin} />
-                  <Stack.Screen name="ClientSignin" component={ClientSignin} />
-                  <Stack.Screen name="CorpLogin" component={CorpLogin} />
-                  <Stack.Screen name="CorpSignin" component={CorpSignin} />
-                  <Stack.Screen
-                    name="OwnerRegister"
-                    component={OwnerRegister}
-                  />
-                  <Stack.Screen name="CorpWelcome" component={CorpWelcome} />
-                  <Stack.Screen
-                    name="ClientWelcome"
-                    component={ClientWelcome}
-                  />
-                  <Stack.Screen
-                    name="ForgotPassword"
-                    component={ForgotPassword}
-                  />
-                  <Stack.Screen name="InitialRoute" component={InitialRoute} />
-                  <Stack.Screen
-                    name="LaundryHomeScreen"
-                    component={LaundryHome}
-                  />
-                  <Stack.Screen name="OrdersScreen" component={OrdersScreen} />
-                  <Stack.Screen
-                    name="OrdersInGoing"
-                    component={OrdersInGoing}
-                  />
-                  <Stack.Screen
-                    name="OrdersConcluded"
-                    component={OrdersConcluded}
-                  />
-                  <Stack.Screen name="OrderDetails" component={OrderDetails} />
-                </Stack.Navigator>
-              </SafeAreaView>
-            </AuthenticationProvider>
+                    <Stack.Screen name="Welcome" component={Welcome} />
+                    <Stack.Screen name="ClientLogin" component={ClientLogin} />
+                    <Stack.Screen
+                      name="ClientSignin"
+                      component={ClientSignin}
+                    />
+                    <Stack.Screen name="CorpLogin" component={CorpLogin} />
+                    <Stack.Screen name="CorpSignin" component={CorpSignin} />
+                    <Stack.Screen
+                      name="OwnerRegister"
+                      component={OwnerRegister}
+                    />
+                    <Stack.Screen name="CorpWelcome" component={CorpWelcome} />
+                    <Stack.Screen
+                      name="ClientWelcome"
+                      component={ClientWelcome}
+                    />
+                    <Stack.Screen
+                      name="ForgotPassword"
+                      component={ForgotPassword}
+                    />
+                    <Stack.Screen
+                      name="InitialRoute"
+                      component={InitialRoute}
+                    />
+                    <Stack.Screen
+                      name="LaundryHomeScreen"
+                      component={LaundryHome}
+                    />
+                    <Stack.Screen
+                      name="OrdersScreen"
+                      component={OrdersScreen}
+                    />
+                    <Stack.Screen
+                      name="OrdersInGoing"
+                      component={OrdersInGoing}
+                    />
+                    <Stack.Screen
+                      name="OrdersConcluded"
+                      component={OrdersConcluded}
+                    />
+                    <Stack.Screen
+                      name="OrderDetails"
+                      component={OrderDetails}
+                    />
+                  </Stack.Navigator>
+                </SafeAreaView>
+              </AuthenticationProvider>
+            </LaundryProvider>
           </OwnerProvider>
         </SafeAreaProvider>
       </NavigationContainer>

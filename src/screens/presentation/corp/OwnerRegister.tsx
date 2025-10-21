@@ -22,18 +22,17 @@ import { OwnerContext } from "@/contexts/";
 import { cpfMask } from "@/constants/inputMasks";
 
 const formMockData: OwnerFormData = {
-  name: "Arthur Pendragon",
-  email: "arthurPendragon3.14159@gmail.com",
-  cpf: "34453424534",
-  password: "Tavola314159",
-  confirmPassword: "Tavola314159",
+  name: "Monkey D Luffy",
+  email: "monkeydluffy@gmail.com",
+  cpf: "26492759274",
+  password: "Mugiwara",
+  confirmPassword: "Mugiwara",
   agreeTerms: true,
 };
 
 export default function OwnerRegister() {
   const navigation = useNavigation<NavigationProp<any>>();
-  const { formData: contextFormData, setFormData: setContextFormData } =
-    useContext(OwnerContext);
+  const { setOwnerData: setContextFormData } = useContext(OwnerContext);
 
   const [formData, setFormData] = useState<OwnerFormData>({
     name: "",
@@ -84,7 +83,28 @@ export default function OwnerRegister() {
       }),
     })
       .then((response) => response.json())
-      .then((body) => console.log(body))
+      .then((body) => {
+        if (body.details === "E-mail já cadastrado!") {
+          Alert.alert("Erro!", "E-mail já cadastrado!");
+          return;
+        }
+        if (body.details === "CPF já cadastrado!") {
+          Alert.alert("Erro!", "CPF já cadastrado!");
+          return;
+        }
+        const newOwnerData = {
+          name: formData.name,
+          email: formData.email,
+          cpf: formData.cpf,
+          password: formData.password,
+          memberId: body.member_id,
+          role: "owner",
+        };
+        setContextFormData(newOwnerData);
+
+        Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
+        navigation.navigate("CorpSignin");
+      })
       .catch((err) => console.error(err));
   };
 
@@ -106,17 +126,6 @@ export default function OwnerRegister() {
         profile_url: "",
       };
       createOwner(ownerData);
-
-      const newOwnerData = {
-        name: formData.name,
-        email: formData.email,
-        cpf: formData.cpf,
-        password: formData.password,
-      };
-      setContextFormData(newOwnerData);
-
-      Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
-      navigation.navigate("CorpSignin");
     } else {
       Alert.alert("Erro", "Por favor, corrija os campos destacados.");
     }

@@ -45,19 +45,27 @@ export default function ClientLogin() {
   };
 
   const loginCostumer = (customer: UserLogin) => {
-    fetch("http://52.67.221.152/customer/sign", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: customer.email,
-        password: customer.password,
-      }),
-    })
+    fetch(
+      "https://illuminational-earlene-incoherently.ngrok-free.dev/customer/sign",
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: customer.email,
+          password: customer.password,
+        }),
+      }
+    )
       .then((response) => response.json())
       .then((body) => {
         console.log(body);
+        if (body.details === "Senha ou e-mail incorretos!") {
+          Alert.alert("Erro!", "Senha ou e-mail incorretos!");
+          return;
+        }
+        Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
         navigation.navigate("InitialRoute");
       })
       .catch((err) => console.log(err));
@@ -66,7 +74,6 @@ export default function ClientLogin() {
   const handleSubmit = () => {
     const isFormValid = validateFields();
     if (isFormValid) {
-      Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
       const customer: UserLogin = {
         email: email,
         password: password,
@@ -96,9 +103,16 @@ export default function ClientLogin() {
         {/* CONTAINER DO FORMS */}
         <View className="gap-3 w-[95vw] h-[70vh] mx-auto my-3 p-4 bg-white border rounded-xl border-[#d9d9d9]">
           {/* TEXTO INTRODUTÓRIO */}
-          <Text className="text-[#5b5265] text-xl font-sansBold text-center my-7">
-            Que bom ter você de volta!
-          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              setEmail(dados.email);
+              setPassword(dados.senha);
+            }}
+          >
+            <Text className="text-[#5b5265] text-xl font-sansBold text-center my-7">
+              Que bom ter você de volta!
+            </Text>
+          </TouchableOpacity>
 
           {/* CAMPO DE EMAIL */}
           <View
@@ -114,6 +128,9 @@ export default function ClientLogin() {
               placeholderTextColor="#d9d9d9"
             />
           </View>
+          {errors.email && (
+            <Text className="text-red-500 -mt-1 mb-2">{errors.email}</Text>
+          )}
 
           {/* CAMPO DE SENHA */}
           <PasswordInput
@@ -121,6 +138,9 @@ export default function ClientLogin() {
             password={password}
             setPassword={setPassword}
           />
+          {errors.password && (
+            <Text className="text-red-500 -mt-1 mb-2">{errors.password}</Text>
+          )}
 
           {/* TEXTO ESQUECEU SUA SENHA */}
           <TouchableOpacity

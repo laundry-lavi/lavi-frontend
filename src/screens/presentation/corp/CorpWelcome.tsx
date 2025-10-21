@@ -3,11 +3,9 @@ import { View, TouchableOpacity, Image, ImageBackground } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 import { Text, BackArrow } from "@/components";
-import { AuthenticationContext } from "@/contexts/AuthenticationContext";
 
 export default function CorpWelcome() {
   const navigation = useNavigation<NavigationProp<any>>();
-  const { isLaundry, toggleIsLaundry } = useContext(AuthenticationContext);
 
   return (
     <View>

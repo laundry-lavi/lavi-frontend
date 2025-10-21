@@ -4,7 +4,7 @@ type OwnerData = {
   name: string;
   email: string;
   cpf: string;
-  memberId: string;
+  memberId?: string;
   token?: string;
   role: string;
 };

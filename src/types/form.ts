@@ -13,6 +13,12 @@ export interface LaundryFormData {
   password: string;
   confirmPassword: string;
   agreeTerms: boolean;
+  opening: {
+    openingHour: string;
+    closingHour: string;
+    fromDay: string;
+    tillDay: string;
+  };
   coordinates: { lat: string; lng: string };
 }
 
@@ -22,7 +28,7 @@ export interface UserFormData {
   email: string;
   cep: string;
   city: string;
-  neighborhood: string;
+  neighbourhood: string;
   address: string;
   birthDate: string;
   gender: string;

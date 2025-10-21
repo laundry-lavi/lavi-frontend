@@ -42,12 +42,15 @@ const dados = {
   name: "Arthur",
   lastName: "Rolemberg",
   email: "teste@gmail.com",
-  cpf: "79454368036",
+  doc: "79454368036",
   cep: "38413165",
-  bairro: "Planalto",
-  cidade: "Uberlândia",
-  endereco: "rua ya nasso",
-  senha: "12345678",
+  neighbourhood: "Planalto",
+  city: "Uberlândia",
+  address: "rua ya nasso",
+  password: "12345678",
+  gender: "Masculino",
+  birthDate: "2007-05-02",
+  isPj: false,
 };
 
 export default function ClientSignin() {
@@ -62,7 +65,7 @@ export default function ClientSignin() {
     email: "",
     cep: "",
     city: "",
-    neighborhood: "",
+    neighbourhood: "",
     address: "",
     birthDate: "",
     gender: "",
@@ -71,7 +74,7 @@ export default function ClientSignin() {
   });
   const [value, setValue] = useState(null);
   const [isFocus, setIsFocus] = useState(false);
-  const [date, setDate] = useState(new Date(1598051730000));
+  const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState<"date" | "time">("date");
   const [show, setShow] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
@@ -95,27 +98,39 @@ export default function ClientSignin() {
     password,
     profileUrl,
   }: UserSignin) => {
-    await fetch("http://52.67.221.152/customer", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        customer: {
-          profile_url: profileUrl,
-          name: name,
-          email: email,
-          is_pj: isPj,
-          doc: doc,
-          birth_date: birthDate,
-          gender: gender,
-          password: password,
+    await fetch(
+      "https://illuminational-earlene-incoherently.ngrok-free.dev/customer",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      }),
-    })
+        body: JSON.stringify({
+          customer: {
+            profile_url: profileUrl,
+            name: name,
+            email: email,
+            is_pj: isPj,
+            doc: doc,
+            birth_date: date.toISOString().slice(0, 10),
+            gender: gender,
+            password: password,
+          },
+        }),
+      }
+    )
       .then((response) => response.json())
       .then((body) => {
-        console.log(body);
+        if (body.details === "E-mail já cadastrado!") {
+          Alert.alert("Erro!", "E-mail já cadastrado!");
+          return;
+        }
+        if (body.details === "Identidade já existe.") {
+          Alert.alert("Erro!", "CPF ou CNPJ já cadastrado!");
+          return;
+        }
+
+        Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
         navigation.navigate("InitialRoute");
       })
       .catch((err) => {
@@ -196,7 +211,6 @@ export default function ClientSignin() {
 
   const handleSubmit = () => {
     if (validateFields()) {
-      Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
       const customer: UserSignin = {
         name: `${formData.name} ${formData.lastName}`,
         email: formData.email,
@@ -228,9 +242,27 @@ export default function ClientSignin() {
           source={require("assets/logo.png")}
           resizeMode="contain"
         />
-        <Text className="text-[#5b5265] text-3xl font-sansBold text-center">
-          Bem vindo!
-        </Text>
+        <TouchableOpacity
+          onPress={() => {
+            formData.address = dados.address;
+            formData.birthDate = dados.birthDate;
+            formData.cep = dados.cep;
+            formData.city = dados.city;
+            formData.doc = dados.doc;
+            formData.email = dados.email;
+            formData.gender = dados.gender;
+            formData.isPj = dados.isPj;
+            formData.lastName = dados.lastName;
+            formData.name = dados.name;
+            formData.neighbourhood = dados.neighbourhood;
+            setPassword(dados.password);
+            setConfirmPassword(dados.password);
+          }}
+        >
+          <Text className="text-[#5b5265] text-3xl font-sansBold text-center">
+            Bem vindo!
+          </Text>
+        </TouchableOpacity>
 
         {/* CONTAINER DO FORMS */}
         <ScrollView className="w-[95vw] h-[74vh] mx-auto my-3 p-4 pb-10 bg-white border rounded-xl border-[#d9d9d9]">
@@ -442,9 +474,9 @@ export default function ClientSignin() {
             {/* TODO: adicionar api de localização?? */}
             <TextInput
               className="w-[49%] p-4 pl-2 text-xl border rounded-xl border-[#d9d9d9]"
-              value={formData.neighborhood}
+              value={formData.neighbourhood}
               onChangeText={(text) =>
-                setFormData({ ...formData, neighborhood: text })
+                setFormData({ ...formData, neighbourhood: text })
               }
               placeholder="Município"
               placeholderTextColor="#d9d9d9"
