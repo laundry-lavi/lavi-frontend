@@ -1,4 +1,5 @@
-import { createContext, useState, Dispatch, SetStateAction } from "react";
+import { createContext, useState, ReactNode, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type LaundryData = {
   ownerId: string | undefined;
@@ -20,58 +21,48 @@ type LaundryData = {
 };
 
 type LaundryContextType = {
-  laundryData: LaundryData;
-  setLaundryData: Dispatch<SetStateAction<LaundryData>>;
+  laundryData: LaundryData | null;
+  setLaundryData: (data: LaundryData | null) => void;
+  clearLaundryData: () => void;
 };
 
 export const LaundryContext = createContext<LaundryContextType>({
-  laundryData: {
-    ownerId: "",
-    laundry: {
-      name: "",
-      email: "",
-      profile_url: "",
-      cnpj: "",
-      address: "",
-      latitude: "",
-      longitude: "",
-      bank_code: "",
-      bank_agency: "",
-      account_number: "",
-      account_type: "",
-      type: "",
-      opening: "",
-    },
-  },
+  laundryData: null,
   setLaundryData: () => {},
+  clearLaundryData: () => {},
 });
 
-export const LaundryProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const [laundryData, setLaundryData] = useState<LaundryData>({
-    ownerId: "",
-    laundry: {
-      name: "",
-      email: "",
-      profile_url: "",
-      cnpj: "",
-      address: "",
-      latitude: "",
-      longitude: "",
-      bank_code: "",
-      bank_agency: "",
-      account_number: "",
-      account_type: "",
-      type: "",
-      opening: "",
-    },
-  });
+export const LaundryProvider = ({ children }: { children: ReactNode }) => {
+  const [laundryData, setLaundryDataState] = useState<LaundryData | null>(null);
+
+  useEffect(() => {
+    const loadLaundryData = async () => {
+      const data = await AsyncStorage.getItem("laundryData");
+      if (data) {
+        setLaundryDataState(JSON.parse(data));
+      }
+    };
+    loadLaundryData();
+  }, []);
+
+  const setLaundryData = async (data: LaundryData | null) => {
+    if (data) {
+      await AsyncStorage.setItem("laundryData", JSON.stringify(data));
+    } else {
+      await AsyncStorage.removeItem("laundryData");
+    }
+    setLaundryDataState(data);
+  };
+
+  const clearLaundryData = async () => {
+    await AsyncStorage.removeItem("laundryData");
+    setLaundryDataState(null);
+  };
 
   return (
-    <LaundryContext.Provider value={{ laundryData, setLaundryData }}>
+    <LaundryContext.Provider
+      value={{ laundryData, setLaundryData, clearLaundryData }}
+    >
       {children}
     </LaundryContext.Provider>
   );

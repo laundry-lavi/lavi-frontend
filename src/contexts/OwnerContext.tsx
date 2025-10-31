@@ -1,4 +1,5 @@
-import { createContext, useState, Dispatch, SetStateAction } from "react";
+import { createContext, useState, ReactNode, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type OwnerData = {
   name: string;
@@ -10,34 +11,46 @@ type OwnerData = {
 };
 
 type OwnerContextType = {
-  ownerData: OwnerData;
-  setOwnerData: Dispatch<SetStateAction<OwnerData>>;
+  ownerData: OwnerData | null;
+  setOwnerData: (data: OwnerData | null) => void;
+  clearOwnerData: () => void;
 };
 
 export const OwnerContext = createContext<OwnerContextType>({
-  ownerData: {
-    name: "",
-    email: "",
-    cpf: "",
-    memberId: "",
-    token: "",
-    role: "",
-  },
+  ownerData: null,
   setOwnerData: () => {},
+  clearOwnerData: () => {},
 });
 
-export const OwnerProvider = ({ children }: { children: React.ReactNode }) => {
-  const [ownerData, setOwnerData] = useState<OwnerData>({
-    name: "",
-    email: "",
-    cpf: "",
-    memberId: "",
-    token: "",
-    role: "",
-  });
+export const OwnerProvider = ({ children }: { children: ReactNode }) => {
+  const [ownerData, setOwnerDataState] = useState<OwnerData | null>(null);
+
+  useEffect(() => {
+    const loadOwnerData = async () => {
+      const data = await AsyncStorage.getItem("ownerData");
+      if (data) {
+        setOwnerDataState(JSON.parse(data));
+      }
+    };
+    loadOwnerData();
+  }, []);
+
+  const setOwnerData = async (data: OwnerData | null) => {
+    if (data) {
+      await AsyncStorage.setItem("ownerData", JSON.stringify(data));
+    } else {
+      await AsyncStorage.removeItem("ownerData");
+    }
+    setOwnerDataState(data);
+  };
+
+  const clearOwnerData = async () => {
+    await AsyncStorage.removeItem("ownerData");
+    setOwnerDataState(null);
+  };
 
   return (
-    <OwnerContext.Provider value={{ ownerData, setOwnerData }}>
+    <OwnerContext.Provider value={{ ownerData, setOwnerData, clearOwnerData }}>
       {children}
     </OwnerContext.Provider>
   );
