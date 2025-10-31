@@ -4,6 +4,7 @@ export interface UserSignin {
   birthDate: string;
   doc: string;
   email: string;
+  address: string;
   gender: string;
   isPj: boolean;
   name: string;

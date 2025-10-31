@@ -5,14 +5,20 @@ import * as SplashScreen from "expo-splash-screen";
 
 import { Text, Header, SmallLaundryCard } from "@/components";
 import { LaundryHome } from "@/screens/laundryScreens/";
-import { AuthenticationContext, LaundriesListContext } from "@/contexts/";
+import {
+  AuthenticationContext,
+  LaundriesListContext,
+  CustomerContext,
+} from "@/contexts/";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
+  const { customerData } = useContext(CustomerContext);
   const { isLaundry } = useContext(AuthenticationContext);
   const { laundriesList, getLaundriesList } = useContext(LaundriesListContext);
 
   useEffect(() => {
+    console.log("Customer Data:", customerData);
     const fetchLaundries = async () => {
       await getLaundriesList();
     };

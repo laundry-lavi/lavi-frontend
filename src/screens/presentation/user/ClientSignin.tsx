@@ -1,3 +1,4 @@
+import React, { SetStateAction, useEffect, useState, useContext } from "react";
 import {
   View,
   ScrollView,
@@ -9,7 +10,6 @@ import {
   Alert,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
-import React, { SetStateAction, useEffect, useState } from "react";
 import { Dropdown } from "react-native-element-dropdown";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -31,6 +31,7 @@ import {
   cpfMask,
 } from "@/constants/inputMasks";
 import { checkingCep } from "@/functions";
+import { CustomerContext } from "@/contexts";
 
 const dropdownData = [
   { label: "Masculino", value: "1" },
@@ -54,6 +55,7 @@ const dados = {
 };
 
 export default function ClientSignin() {
+  const { setCustomerData } = useContext(CustomerContext);
   const navigation = useNavigation<NavigationProp<any>>();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -97,6 +99,7 @@ export default function ClientSignin() {
     gender,
     password,
     profileUrl,
+    address,
   }: UserSignin) => {
     await fetch(
       "https://illuminational-earlene-incoherently.ngrok-free.dev/customer",
@@ -115,6 +118,7 @@ export default function ClientSignin() {
             birth_date: date.toISOString().slice(0, 10),
             gender: gender,
             password: password,
+            address: address,
           },
         }),
       }
@@ -130,8 +134,26 @@ export default function ClientSignin() {
           return;
         }
 
-        Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
-        navigation.navigate("InitialRoute");
+        console.log(body);
+
+        setCustomerData({
+          name: formData.name,
+          email: formData.email,
+          cpf: formData.doc,
+          birthDate: date.toISOString().slice(0, 10),
+          address: `${formData.address}, ${formData.neighbourhood}, ${formData.city}, ${formData.cep}`,
+          gender: formData.gender,
+          isPj: formData.isPj,
+          password: password,
+          profileUrl: null,
+          memberId: body.customer_id,
+          role: "customer",
+        });
+        navigation.navigate("ClientLogin");
+        Alert.alert(
+          "Sucesso!",
+          "Formulário preenchido corretamente, agora faça login com o email e senha cadastrados."
+        );
       })
       .catch((err) => {
         console.error(err);
@@ -220,6 +242,7 @@ export default function ClientSignin() {
         gender: formData.gender,
         isPj: formData.isPj,
         profileUrl: null,
+        address: `${formData.address}, ${formData.neighbourhood}, ${formData.city}, ${formData.cep}`,
       };
       createCustomer(customer);
     } else {
@@ -510,7 +533,7 @@ export default function ClientSignin() {
               onChangeText={(text) =>
                 setFormData({ ...formData, address: text })
               }
-              placeholder="Endereço"
+              placeholder="Endereço (rua, número)"
               placeholderTextColor="#d9d9d9"
             />
           </View>

@@ -1,3 +1,4 @@
+import { useState, useContext } from "react";
 import {
   View,
   TouchableOpacity,
@@ -7,20 +8,22 @@ import {
   Alert,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
-import { useState } from "react";
 
 import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { Text, BackArrow, PasswordInput } from "@/components";
 import { UserLogin } from "@/types";
+import { CustomerContext } from "@/contexts";
+import { getCustomer } from "@/functions/";
 
 const dados = {
-  email: "teste@gmail.com",
+  email: "test3123@gmail.com",
   senha: "12345678",
 };
 
 export default function ClientLogin() {
+  const { setCustomerData, customerData } = useContext(CustomerContext);
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const navigation = useNavigation<NavigationProp<any>>();
@@ -60,13 +63,31 @@ export default function ClientLogin() {
     )
       .then((response) => response.json())
       .then((body) => {
-        console.log(body);
         if (body.details === "Senha ou e-mail incorretos!") {
           Alert.alert("Erro!", "Senha ou e-mail incorretos!");
           return;
         }
-        Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
-        navigation.navigate("InitialRoute");
+        getCustomer(email).then((customer) => {
+          if (!customer) {
+            Alert.alert("Erro!", "Cliente não encontrado.");
+            return;
+          }
+          setCustomerData({
+            token: body.token,
+            name: customer.customer.name || "",
+            email: customer.customer.email,
+            cpf: customer.customer.doc || "",
+            birthDate: customer.customer.birthDate || "",
+            address: customer.customer.address || "",
+            gender: customer.customer.gender || "",
+            isPj: customer.customer.isPj || false,
+            password: customerData?.password || "",
+            profileUrl: customer.customer.profileUrl || null,
+            role: customer.customer.role || "customer",
+          });
+          Alert.alert("Sucesso!", "Formulário preenchido corretamente.");
+          navigation.navigate("InitialRoute");
+        });
       })
       .catch((err) => console.log(err));
   };
