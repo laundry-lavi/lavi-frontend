@@ -1,15 +1,30 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { View, TouchableOpacity, Image, ImageBackground } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+import * as SplashScreen from "expo-splash-screen";
 
 import { Text } from "@/components";
-import { AuthenticationContext } from "@/contexts/AuthenticationContext";
+import { AuthenticationContext, LocationContext } from "@/contexts/";
+
+SplashScreen.preventAutoHideAsync();
 
 export default function Welcome() {
   const navigation = useNavigation<NavigationProp<any>>();
   const { setIsLaundryTrue, setIsLaundryFalse } = useContext(
     AuthenticationContext
   );
+  const { location, getCurrentLocation } = useContext(LocationContext);
+
+  useEffect(() => {
+    getCurrentLocation();
+    if (location) {
+      SplashScreen.hideAsync();
+    }
+  }, [location]);
+
+  if (!location) {
+    return null;
+  }
 
   return (
     <View>

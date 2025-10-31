@@ -12,7 +12,13 @@ import {
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 
-import { ModalImage, ModalImageCarousel, BackArrow, Text } from "@/components";
+import {
+  ModalImage,
+  ModalImageCarousel,
+  BackArrow,
+  Text,
+  StarRating,
+} from "@/components";
 
 // --- TIPAGEM (TYPESCRIPT) ---
 
@@ -225,11 +231,22 @@ const ServicesSection = () => {
 };
 
 // --- TELA PRINCIPAL ---
-export default function LaundryProfileScreen() {
+export default function LaundryProfileScreen({ route }: any) {
   const navigation = useNavigation<NavigationProp<any>>();
   const [activeTab, setActiveTab] = useState<"Avaliações" | "Serviços">(
     "Avaliações"
   );
+  const date = new Date();
+  date.setMinutes(date.getMinutes() + route.params.params.duration);
+
+  const makeRate = (grade: number[]) => {
+    let rate = 0;
+    grade.forEach((g) => {
+      rate += g;
+    });
+    const finalRate = rate / grade.length;
+    return finalRate;
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -256,17 +273,32 @@ export default function LaundryProfileScreen() {
 
         <View className="p-4">
           {/* Informações Principais */}
-          <Text className="text-2xl font-sansBold text-gray-800">Lave-bem</Text>
+          <Text className="text-2xl font-sansBold text-gray-800">
+            {route.params.params.name}
+          </Text>
           <Text className="text-base text-gray-500 mt-1">
-            11 Minutos • Chega às 12:54
+            {route.params.params.duration < 1
+              ? "Menos que 1 minuto"
+              : `${route.params.params.duration} min`}{" "}
+            • Chega às {date.getHours().toString().padStart(2, "0")}:
+            {date.getMinutes().toString().padStart(2, "0")}
           </Text>
           <View className="flex-row items-center mt-1">
-            <Text className="text-yellow-500 font-sansBold mr-1">4.8</Text>
-            <Ionicons name="star" size={16} color="#EAB308" />
-            <Ionicons name="star" size={16} color="#EAB308" />
-            <Ionicons name="star" size={16} color="#EAB308" />
-            <Ionicons name="star" size={16} color="#EAB308" />
-            <Ionicons name="star-half" size={16} color="#EAB308" />
+            <Text className="text-yellow-500 font-sansBold mr-1">
+              {
+                4.5
+                //makeRate(route.params.params.grade).toFixed(1)
+              }
+            </Text>
+            <Text className="text-yellow-500">
+              <StarRating
+                starSize={14}
+                rating={
+                  4.5
+                  //Number(makeRate(route.params.params.grade).toFixed(1))
+                }
+              />
+            </Text>
           </View>
 
           {/* Detalhes e Ações */}
@@ -284,7 +316,11 @@ export default function LaundryProfileScreen() {
                 </Text>
               </View>
               <TouchableOpacity
-                onPress={() => navigation.navigate("LaundryScheduleScreen")}
+                onPress={() =>
+                  navigation.navigate("LaundryScheduleScreen", {
+                    ...route.params.params,
+                  })
+                }
                 className="flex-row items-center border border-gray-300 rounded-lg p-3 flex-1"
               >
                 <Ionicons name="calendar-outline" size={24} color="#4B5563" />
@@ -306,8 +342,7 @@ export default function LaundryProfileScreen() {
                   className="mt-1"
                 />
                 <Text className="text-sm text-gray-700 ml-3" numberOfLines={2}>
-                  R. 20 de Setembro, 700-Sala 12, Bela Vista, Teresina-PI,
-                  13723-00
+                  {route.params.params.address}
                 </Text>
               </View>
             </View>
@@ -320,12 +355,16 @@ export default function LaundryProfileScreen() {
                   color="#4B5563"
                   className="mt-1"
                 />
-                <Text className="text-sm text-gray-700 ml-3">
-                  <Text className="font-sansBold text-green-600">Aberto</Text> •
-                  Fecha às 19:00
+                <Text className="w-[85%] text-sm text-gray-700 ml-3">
+                  {route.params.params.opening}
                 </Text>
               </View>
-              <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-lg p-3 flex-1">
+              <TouchableOpacity
+                onPress={() => {
+                  console.log(route.params);
+                }}
+                className="flex-row items-center border border-gray-300 rounded-lg p-3 flex-1"
+              >
                 <Ionicons
                   name="chatbubbles-outline"
                   size={24}

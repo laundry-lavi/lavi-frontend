@@ -8,3 +8,4 @@ export { default as ConversationComponent } from "./ConversationComponent";
 export { default as BottomSheet } from "./BottomSheet";
 export { default as ModalImage } from "./ModalImage";
 export { default as ModalImageCarousel } from "./ModalImageCarousel";
+export { default as StarRating } from "./StarRating";

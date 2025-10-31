@@ -5,10 +5,14 @@ import ConcludedOrder from "./ConcludedOrder";
 
 const Stack = createStackNavigator();
 
-export default function LaundryRoute() {
+export default function LaundryRoute({ route }: any) {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="LaundryProfileScreen" component={LaundryProfile} />
+      <Stack.Screen
+        name="LaundryProfileScreen"
+        component={LaundryProfile}
+        initialParams={route}
+      />
       <Stack.Screen name="LaundryScheduleScreen" component={LaundrySchedule} />
       <Stack.Screen name="ConcludedOrderScreen" component={ConcludedOrder} />
     </Stack.Navigator>

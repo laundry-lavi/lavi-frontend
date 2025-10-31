@@ -4,8 +4,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 
 import Text from "./MyText";
 import { Laundry } from "@/types";
-
-// TODO: pegar a lat e lng do usuário e calcular a distancia
+import StarRating from "./StarRating";
 
 export default function SmallLaundryCard({ item }: { item: Laundry }) {
   const makeRate = (grade: number[]) => {
@@ -16,9 +15,11 @@ export default function SmallLaundryCard({ item }: { item: Laundry }) {
     const finalRate = rate / grade.length;
     return finalRate;
   };
+  const date = new Date();
+  date.setMinutes(date.getMinutes() + item.duration);
 
   return (
-    <View className="flex flex-row gap-2 rounded-lg p-3 mr-4 w-72 h-32 border border-[#d9d9d9]">
+    <View className="flex flex-row gap-2 rounded-lg p-3 mb-3 w-full h-32 border border-[#d9d9d9]">
       <View className="w-1 h-full bg-[#a391c2] rounded-xl"></View>
       <View className="flex-[6] flex-col justify-between">
         <Text className="text-base font-bold text-gray-800 mt-1">
@@ -28,7 +29,12 @@ export default function SmallLaundryCard({ item }: { item: Laundry }) {
           <Text className="text-sm text-yellow-500 mr-1">
             {makeRate(item.grade).toFixed(1)}
           </Text>
-          <Text className="text-yellow-500">★★★★★</Text>
+          <Text className="text-yellow-500">
+            <StarRating
+              starSize={14}
+              rating={Number(makeRate(item.grade).toFixed(1))}
+            />
+          </Text>
         </View>
         <View className="flex flex-row justify-between">
           <Text className="text-xs text-gray-500 mt-1">{item.type}</Text>
@@ -41,8 +47,13 @@ export default function SmallLaundryCard({ item }: { item: Laundry }) {
         {/* <Image source={item.img} className="w-24 h-24 rounded-lg" /> */}
         <View className="flex-1 bg-purple-700/30 p-2 rounded-tl-lg rounded-br-lg items-center">
           <Ionicons name="location-sharp" size={20} color="white" />
-          <Text className="text-white text-xs font-bold">3 minutos</Text>
-          <Text className="text-white text-xs text-center">Chega ás 12:01</Text>
+          <Text className="text-white text-xs text-center font-bold">
+            {item.duration < 1 ? "Menos que 1 minuto" : `${item.duration} min`}
+          </Text>
+          <Text className="text-white text-xs text-center">
+            Chega às {date.getHours().toString().padStart(2, "0")}:
+            {date.getMinutes().toString().padStart(2, "0")}
+          </Text>
         </View>
       </View>
     </View>

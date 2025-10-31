@@ -5,7 +5,10 @@ import {
   getCurrentPositionAsync,
 } from "expo-location";
 
-export const LocationContext = createContext({});
+export const LocationContext = createContext({
+  location: {} as LocationObject,
+  getCurrentLocation: async () => {},
+});
 
 export function LocationProvider({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useState<LocationObject>({

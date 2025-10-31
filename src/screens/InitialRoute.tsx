@@ -1,10 +1,11 @@
 import React, { useContext } from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
 import Chat from "./chat/ChatRoute";
 import Home from "./home/HomeRoute";
 import Map from "./map/MapRoute";
 import Profile from "./profile/ProfileRoute";
-import { AuthenticationContext } from "@/contexts/AuthenticationContext";
+import { AuthenticationContext } from "@/contexts";
 
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome from "@expo/vector-icons/FontAwesome";

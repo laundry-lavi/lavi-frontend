@@ -1,118 +1,59 @@
-import React, { useContext } from "react";
-import {
-  View,
-  ScrollView,
-  Image,
-  ImageBackground,
-  FlatList,
-  TouchableOpacity,
-  ImageSourcePropType,
-} from "react-native";
+import React, { useContext, useEffect } from "react";
+import { View, Image, FlatList, TouchableOpacity } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
+import * as SplashScreen from "expo-splash-screen";
 
 import { Text, Header, SmallLaundryCard } from "@/components";
 import { LaundryHome } from "@/screens/laundryScreens/";
-import { AuthenticationContext } from "@/contexts/AuthenticationContext";
-
-import { laundrys } from "@/types";
-
-type Colaborador = {
-  id: number;
-  name: string;
-  img: ImageSourcePropType;
-};
-
-type FilterButtonProps = {
-  text: string;
-  isSelected: boolean;
-  hasIcon?: boolean; // Opcional
-};
-
-const colaboradores: Colaborador[] = [
-  { id: 1, name: "Lava", img: require("assets/img1.png") },
-  { id: 2, name: "Anda", img: require("assets/img2.png") },
-  { id: 3, name: "Lavand", img: require("assets/img3.png") },
-  {
-    id: 4,
-    name: "Lava Fun",
-    img: require("assets/img4.png"),
-  },
-  { id: 5, name: "Super", img: require("assets/img5.png") },
-];
-
-const testApi = async () => {};
+import { AuthenticationContext, LaundriesListContext } from "@/contexts/";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
   const { isLaundry } = useContext(AuthenticationContext);
+  const { laundriesList, getLaundriesList } = useContext(LaundriesListContext);
+
+  useEffect(() => {
+    const fetchLaundries = async () => {
+      await getLaundriesList();
+    };
+    fetchLaundries();
+  }, []);
 
   return isLaundry ? (
     <LaundryHome />
   ) : (
-    <View>
+    <View className="flex-1">
       <Header />
-      <View className="p-4">
-        <Image
-          className="h-[28vh] w-full rounded-xl mb-3"
-          source={require("assets/promo.png")}
-          resizeMode="cover"
-        />
-        <Text className="text-lg text-[#210030] font-sansBold">
-          Lavanderias em alta
-        </Text>
-        <FlatList
-          className="w-screen -ml-2 mb-4"
-          showsHorizontalScrollIndicator={false}
-          data={laundrys}
-          renderItem={({ item }) => {
-            return (
-              <TouchableOpacity
-                onPress={() => navigation.navigate("LaundryRoute")}
-              >
-                <SmallLaundryCard item={item} />
-              </TouchableOpacity>
-            );
-          }}
-          horizontal={true}
-          keyExtractor={(item, i) => i.toString()}
-        />
-        {/*
-        <Text className="text-lg text-[#210030] font-sansBold">
-          Colaboradores
-        </Text>
-        <FlatList
-          className="w-screen -ml-2 mb-4"
-          showsHorizontalScrollIndicator={false}
-          data={colaboradores}
-          renderItem={ColaboradorAvatar}
-          horizontal={true}
-          keyExtractor={(item) => item.id.toString()}
-        />
-        */}
-      </View>
+      <FlatList
+        className="px-4" // Adiciona padding horizontal à lista
+        showsVerticalScrollIndicator={false}
+        data={laundriesList}
+        ListHeaderComponent={
+          // Componentes que aparecem no topo da lista
+          <>
+            <Image
+              className="h-[28vh] w-full rounded-xl my-3"
+              source={require("assets/promo.png")}
+              resizeMode="cover"
+            />
+            <Text className="text-lg text-[#210030] font-sansBold mb-3">
+              Lavanderias em alta
+            </Text>
+          </>
+        }
+        renderItem={({ item }) => {
+          return (
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate("LaundryRoute", { ...item });
+              }}
+            >
+              <SmallLaundryCard item={item} />
+            </TouchableOpacity>
+          );
+        }}
+        keyExtractor={(item, i) => i.toString()}
+      />
     </View>
   );
 }
-
-// const FilterButton = ({ text, isSelected, hasIcon }) => (
-//   <TouchableOpacity
-//     className={`py-2 px-4 rounded-lg border border-gray-200 ${
-//       isSelected ? "bg-purple-100 border-purple-500" : "bg-white"
-//     }`}
-//   >
-//     <View className="flex-row items-center">
-//       {hasIcon && (
-//         <Icon
-//           name="checkmark"
-//           size={16}
-//           color={isSelected ? "#8B5CF6" : "#6B7280"}
-//         />
-//       )}
-//       <Text
-//         className={`ml-2 ${isSelected ? "text-purple-600 font-bold" : "text-gray-600"}`}
-//       >
-//         {text}
-//       </Text>
-//     </View>
-//   </TouchableOpacity>
-// );

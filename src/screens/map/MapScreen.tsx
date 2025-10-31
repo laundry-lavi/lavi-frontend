@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { View, Image } from "react-native";
 import MapView, { Marker, Callout } from "react-native-maps";
 import * as Location from "expo-location";
 
 import { Text, Header, BottomSheet } from "@/components";
+import { LocationContext } from "@/contexts";
 
 export default function Map() {
+  const { location: initialLocation } = useContext(LocationContext);
   const [location, setLocation] = useState<Location.LocationObject>({
     coords: {
       accuracy: 100,
