@@ -58,7 +58,7 @@ function InProgressOrderCard({
   machine,
 }: OrderCardProps) {
   const navigation = useNavigation<NavigationProp<any>>();
-  
+
   return (
     <View className="bg-white rounded-lg p-4 mb-4 shadow-sm border border-gray-100">
       {/* Linha Superior: Nome e Total de Peças */}
@@ -116,7 +116,7 @@ export default function InProgressOrdersScreen() {
 
       {/* Header */}
       <BackArrow />
-      <View className="bg-[#2c003d] p-4 pt-6 pl-24 flex-row items-center justify-between">
+      <View className="bg-[#2c003d] p-4 pt-6 pl-32 flex-row items-center justify-between">
         <View className="items-center">
           <Text className="text-white text-xl font-bold">
             Pedidos em Andamento

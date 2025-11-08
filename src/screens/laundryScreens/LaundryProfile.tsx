@@ -45,7 +45,7 @@ export default function LaundryProfileScreen() {
     <SafeAreaView className="flex-1 bg-slate-100">
       <ImageBackground
         className="w-full h-full p-3 pt-20"
-        source={require("assets/bubble-bg.png")} // Verifique o caminho do seu asset
+        source={require("assets/bubble-bg.png")}
       >
         <ScrollView showsVerticalScrollIndicator={false}>
           {/* Ícone da Câmera */}
@@ -56,7 +56,7 @@ export default function LaundryProfileScreen() {
           </View>
 
           {/* Avatares dos Funcionários */}
-          <View className="absolute top-4 left-4 flex-row">
+          {/* <View className="absolute top-4 left-4 flex-row">
             {[
               "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg",
               "https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg",
@@ -70,7 +70,7 @@ export default function LaundryProfileScreen() {
                 }`}
               />
             ))}
-          </View>
+          </View> */}
 
           {/* Conteúdo Principal com Carrossel */}
           <View className="mt-20 mx-2">
@@ -80,8 +80,8 @@ export default function LaundryProfileScreen() {
               pagingEnabled
               showsHorizontalScrollIndicator={false}
               onScroll={handleScroll}
-              scrollEventThrottle={16} // Melhora a performance do onScroll no Android
-              style={{ width: screenWidth - 30, overflow: "visible" }} // 2*mx-4 = 32
+              scrollEventThrottle={16}
+              style={{ width: screenWidth - 30, overflow: "visible" }}
             >
               {/* === Slide 1: Informações Principais === */}
               <View

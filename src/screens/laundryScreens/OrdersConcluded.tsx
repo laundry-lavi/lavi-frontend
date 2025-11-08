@@ -111,20 +111,15 @@ export default function CompletedOrdersScreen() {
       <StatusBar barStyle="light-content" />
 
       {/* Header */}
-      <View className="bg-[#2c003d] p-4 pt-6 flex-row items-center justify-between">
-        <TouchableOpacity className="bg-white p-2 rounded-full">
-          <Ionicons name="arrow-back" size={24} color="#2c003d" />
-        </TouchableOpacity>
+      <BackArrow size={32} />
+      <View className="bg-[#2c003d] p-4 pt-6 pl-32 flex-row items-center justify-between">
         <View className="items-center">
           <Text className="text-white text-xl font-bold">
             Pedidos Concluídos
           </Text>
-          <Text className="text-gray-300 text-sm">registrados</Text>
         </View>
-        <TouchableOpacity className="bg-white p-2 rounded-full relative">
-          <Ionicons name="notifications" size={24} color="#2c003d" />
-          <View className="absolute right-1 top-1 w-2.5 h-2.5 bg-red-500 rounded-full border border-white" />
-        </TouchableOpacity>
+
+        <NotificationBtn color="white" />
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
