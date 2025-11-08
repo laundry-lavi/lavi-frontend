@@ -7,20 +7,26 @@ import {
   TouchableOpacity,
   TextInput,
   ImageBackground,
+  Alert,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
-import { Text } from "@/components";
+import { Text, InfoField } from "@/components";
 import {
   UserProfile,
   Order,
   PasswordInputProps,
   PasswordVisibilityState,
 } from "@/types";
-import { AuthenticationContext, OwnerContext } from "@/contexts";
+import {
+  AuthenticationContext,
+  OwnerContext,
+  CustomerContext,
+  LaundryContext,
+} from "@/contexts";
 import { EmployeeProfile, LaundryProfile } from "@/screens/laundryScreens";
 
 const user: UserProfile = {
@@ -46,24 +52,59 @@ const orders: Order[] = [
 export default function Profile() {
   const navigation = useNavigation<NavigationProp<any>>();
   const [activeFilter, setActiveFilter] = useState("Em andamento");
+  const { customerData, clearCustomerData } = useContext(CustomerContext);
   const { isLaundry } = useContext(AuthenticationContext);
-  const { ownerData } = useContext(OwnerContext);
+  const { ownerData, clearOwnerData } = useContext(OwnerContext);
+  const { clearLaundryData } = useContext(LaundryContext);
 
-  const [passwordVisibility, setPasswordVisibility] =
-    useState<PasswordVisibilityState>({
-      isVisible: true,
-      iconName: "eye",
-    });
+  if (!isLaundry && !customerData) {
+    Alert.alert(
+      "Erro",
+      "Dados do cliente não disponíveis. Você entrou como convidado?",
+      [
+        { text: "Sim", onPress: () => {} },
+        {
+          text: "Não",
+          onPress: () => {
+            clearCustomerData();
+            clearOwnerData();
+            clearLaundryData();
+            navigation.navigate("Welcome");
+            Alert.alert(
+              "Redirecionando",
+              "Você será redirecionado para a tela de boas-vindas."
+            );
+          },
+        },
+      ]
+    );
+  }
 
-  const handlePasswordVisibility = (): void => {
-    setPasswordVisibility((prevState) => ({
-      isVisible: !prevState.isVisible,
-      iconName: prevState.isVisible ? "eye-off" : "eye",
-    }));
-  };
+  if (isLaundry && !ownerData) {
+    Alert.alert(
+      "Erro",
+      "Dados da lavanderia não disponíveis. Você entrou como convidado?",
+      [
+        { text: "Sim", onPress: () => {} },
+        {
+          text: "Não",
+          onPress: () => {
+            clearCustomerData();
+            clearOwnerData();
+            clearLaundryData();
+            navigation.navigate("Welcome");
+            Alert.alert(
+              "Redirecionando",
+              "Você será redirecionado para a tela de boas-vindas."
+            );
+          },
+        },
+      ]
+    );
+  }
 
   return isLaundry ? (
-    ownerData.role === "owner" ? (
+    ownerData?.role === "owner" ? (
       <LaundryProfile />
     ) : (
       <EmployeeProfile />
@@ -95,61 +136,34 @@ export default function Profile() {
               <View className="items-center">
                 <View className="flex-row items-center">
                   <Text className="text-xl font-bold text-gray-800 mr-2">
-                    {user.name}
+                    {customerData?.name}
                   </Text>
-                  <Ionicons name="pencil-outline" size={20} color="#4B5563" />
                 </View>
-                <Text className="text-sm text-gray-500 mt-1">
-                  Entrou em {user.joinDate}
-                </Text>
               </View>
 
               {/* Formulário */}
-              <View className="mt-8 mb-4">
-                <Text className="text-[#210030] font-sansBold">Email</Text>
-                <TextInput
+              <View className="mt-4 mb-4">
+                {/* <TextInput
                   className="text-[#d9d9d9] text-lg p-4 pl-2 mb-2 border rounded-xl border-[#d9d9d9]"
                   placeholder="Email"
                   defaultValue="arthurrollemberg"
                   placeholderTextColor="#d9d9d9"
                   editable={false}
-                />
-                <Text className="text-[#210030] font-sansBold">Telefone</Text>
-                <TextInput
-                  className="text-[#d9d9d9] text-lg p-4 pl-2 mb-2 border rounded-xl border-[#d9d9d9]"
-                  placeholder="Telefone"
-                  defaultValue="+55 11 943191530"
-                  placeholderTextColor="#d9d9d9"
-                  editable={false}
-                />
-                <Text className="text-[#210030] font-sansBold">Endereço</Text>
-                <TextInput
-                  className="text-[#d9d9d9] text-lg p-4 pl-2 mb-2 border rounded-xl border-[#d9d9d9]"
-                  placeholder="Endereço"
-                  defaultValue="Rua das flores, 512, jardim dos alces"
-                  placeholderTextColor="#d9d9d9"
-                  editable={false}
+                /> */}
+                <InfoField label="Email" value={customerData?.email || ""} />
+
+                {/* <InfoField label="Telefone" value={customerData?.phone || ""} /> */}
+
+                <InfoField
+                  label="Endereço"
+                  value={customerData?.address || ""}
                 />
 
-                <Text className="text-[#210030] font-sansBold">
-                  Senha de Acesso
-                </Text>
-                <View className="flex flex-row items-center gap-2 p-2 border rounded-xl border-[#d9d9d9]">
-                  <TextInput
-                    className="flex-1 text-[#d9d9d9] text-lg font-sans"
-                    placeholder="Senha"
-                    defaultValue="S3nh@Mu!t#Segur4"
-                    placeholderTextColor="#d9d9d9"
-                    secureTextEntry={passwordVisibility.isVisible}
-                  />
-                  <TouchableOpacity onPress={handlePasswordVisibility}>
-                    <MaterialCommunityIcons
-                      name={passwordVisibility.iconName}
-                      size={24}
-                      color="#d9d9d9"
-                    />
-                  </TouchableOpacity>
-                </View>
+                <InfoField
+                  label="Senha"
+                  value={customerData?.password || ""}
+                  isPassword
+                />
               </View>
 
               {/* SEGUNDA SEÇÃO */}

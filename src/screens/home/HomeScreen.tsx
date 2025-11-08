@@ -18,7 +18,9 @@ export default function HomeScreen() {
   const { laundriesList, getLaundriesList } = useContext(LaundriesListContext);
 
   useEffect(() => {
-    console.log("Customer Data:", customerData);
+    if (isLaundry) {
+      return;
+    }
     const fetchLaundries = async () => {
       await getLaundriesList();
     };

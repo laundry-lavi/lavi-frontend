@@ -1,14 +1,17 @@
-import React from "react";
-import {
-  View,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  Appearance,
-} from "react-native";
+import React, { useContext } from "react";
+import { View, SafeAreaView, TouchableOpacity, Appearance } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
+
+import { Text } from "@/components";
+import { CustomerContext, LaundryContext, OwnerContext } from "@/contexts";
 
 export default function SettingsScreen() {
+  const navigation = useNavigation<NavigationProp<any>>();
+  const { customerData, clearCustomerData } = useContext(CustomerContext);
+  const { ownerData, clearOwnerData } = useContext(OwnerContext);
+  const { laundryData, clearLaundryData } = useContext(LaundryContext);
+
   const toggleTheme = () => {
     Appearance.setColorScheme(
       Appearance.getColorScheme() === "dark" ? "light" : "dark"
@@ -45,7 +48,18 @@ export default function SettingsScreen() {
           <Text className="text-gray-700 text-base">Tema do App</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity className="py-4 border-t border-gray-100">
+        <TouchableOpacity
+          onPress={() => {
+            clearCustomerData();
+            clearOwnerData();
+            clearLaundryData();
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "Welcome" }],
+            });
+          }}
+          className="py-4 border-t border-gray-100"
+        >
           <Text className="text-red-500 text-base font-semibold">Sair</Text>
         </TouchableOpacity>
       </View>

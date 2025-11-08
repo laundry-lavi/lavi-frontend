@@ -1,7 +1,6 @@
 import React, { useRef, useState, useContext } from "react";
 import {
   View,
-  Text,
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
@@ -14,51 +13,18 @@ import { NavigationProp, useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { OwnerContext } from "@/contexts";
-
-interface InfoFieldProps {
-  label: string;
-  value: string;
-  iconName?: keyof typeof Ionicons.glyphMap;
-  isPassword?: boolean;
-  width?: string;
-}
-
-const InfoField = ({
-  label,
-  value,
-  iconName,
-  isPassword = false,
-  width = "w-full",
-}: InfoFieldProps) => (
-  <View className={`mb-4 ${width}`}>
-    <Text className="text-sm font-semibold text-gray-600 mb-1 ml-1">
-      {label}
-    </Text>
-    <View className="flex-row items-center justify-between bg-white border border-gray-200 rounded-lg px-3 py-3">
-      <Text
-        className={`text-base ${isPassword ? "font-bold" : "text-gray-700"}`}
-      >
-        {isPassword ? "••••••••" : value}
-      </Text>
-      {iconName && (
-        <TouchableOpacity>
-          <Ionicons name={iconName} size={20} color="#9ca3af" />
-        </TouchableOpacity>
-      )}
-    </View>
-  </View>
-);
+import { InfoField, Text } from "@/components";
 
 // --- Componente Principal da Tela ---
 export default function LaundryProfileScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
   const { ownerData } = useContext(OwnerContext);
   const profileData = {
-    name: ownerData.name,
-    email: ownerData.email,
-    cpf: ownerData.cpf,
-    memberId: ownerData.memberId,
-    token: ownerData.token || "",
+    name: ownerData?.name,
+    email: ownerData?.email,
+    cpf: ownerData?.cpf,
+    memberId: ownerData?.memberId,
+    token: ownerData?.token || "",
   };
 
   const [activeIndex, setActiveIndex] = useState(0);
@@ -180,8 +146,11 @@ export default function LaundryProfileScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <InfoField label="Email" value={profileData.email} />
-                <InfoField label="Documento (CPF)" value={profileData.cpf} />
+                <InfoField label="Email" value={profileData.email || ""} />
+                <InfoField
+                  label="Documento (CPF)"
+                  value={profileData.cpf || ""}
+                />
               </View>
             </ScrollView>
 
