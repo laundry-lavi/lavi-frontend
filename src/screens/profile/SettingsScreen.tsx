@@ -1,16 +1,28 @@
 import React, { useContext } from "react";
-import { View, SafeAreaView, TouchableOpacity, Appearance } from "react-native";
+import {
+  View,
+  SafeAreaView,
+  TouchableOpacity,
+  Appearance,
+  Alert,
+} from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 import { Text } from "@/components";
-import { CustomerContext, LaundryContext, OwnerContext } from "@/contexts";
+import {
+  CustomerContext,
+  LaundryContext,
+  OwnerContext,
+  AuthenticationContext,
+} from "@/contexts";
 
 export default function SettingsScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
   const { customerData, clearCustomerData } = useContext(CustomerContext);
   const { ownerData, clearOwnerData } = useContext(OwnerContext);
   const { laundryData, clearLaundryData } = useContext(LaundryContext);
+  const { setIsLaundryFalse } = useContext(AuthenticationContext);
 
   const toggleTheme = () => {
     Appearance.setColorScheme(
@@ -50,13 +62,28 @@ export default function SettingsScreen() {
 
         <TouchableOpacity
           onPress={() => {
-            clearCustomerData();
-            clearOwnerData();
-            clearLaundryData();
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Welcome" }],
-            });
+            Alert.alert(
+              "Tem certeza que deseja sair?",
+              "Ao sair, a sua conta será esquecida e você terá que entrar novamente.",
+              [
+                {
+                  text: "Sair",
+                  onPress: () => {
+                    navigation.navigate("Welcome");
+                    clearCustomerData();
+                    clearOwnerData();
+                    clearLaundryData();
+                    setIsLaundryFalse();
+                  },
+                },
+                {
+                  text: "Cancelar",
+                  onPress: () => {
+                    return;
+                  },
+                },
+              ]
+            );
           }}
           className="py-4 border-t border-gray-100"
         >

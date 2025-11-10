@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useMemo, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -8,6 +8,7 @@ import {
   TextInput,
   ImageSourcePropType,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
@@ -18,19 +19,12 @@ import {
   BackArrow,
   Text,
   StarRating,
+  FeedbackCard,
+  ReviewsSection,
 } from "@/components";
-
-// --- TIPAGEM (TYPESCRIPT) ---
-
-type Review = {
-  id: string;
-  userName: string;
-  userAvatar: ImageSourcePropType;
-  rating: number;
-  date: string;
-  comment: string;
-  images: ImageSourcePropType[];
-};
+import { Feedback } from "@/types";
+import { CustomerContext } from "@/contexts";
+import { getFeedbacks } from "@/functions";
 
 // --- DADOS DE EXEMPLO (MOCK DATA) ---
 const laundryImages = [
@@ -45,160 +39,7 @@ const laundryImages = [
   },
 ];
 
-const reviewImgs = [
-  {
-    uri: "https://images.pexels.com/photos/1450372/pexels-photo-1450372.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    uri: "https://images.pexels.com/photos/2089698/pexels-photo-2089698.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  {
-    uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
-  },
-  // {
-  //   uri: "https://images.pexels.com/photos/4046313/pexels-photo-4046313.jpeg?auto=compress&cs=tinysrgb&w=600",
-  // },
-];
-const reviewData: Review = {
-  id: "r1",
-  userName: "Fernando Hibsaro Silva Comelli",
-  userAvatar: { uri: "https://i.pravatar.cc/150?img=12" },
-  rating: 5,
-  date: "18/07/2025",
-  comment:
-    "A Lave-bem é uma lavanderia com ótima reputação. Ela fez um ótimo trabalho com minhas roupas, até anexei algumas imagens com um antes e depois. Sensacional! Parece novo.",
-  images: [],
-};
-
 // --- COMPONENTES DA TELA ---
-
-// Componente para a aba "Avaliações"
-const ReviewsSection = () => {
-  const filters = [
-    "Todos",
-    "Mais recentes",
-    "Mais antigos",
-    "5★",
-    "4★",
-    "3★",
-    "2★",
-    "1★",
-  ];
-  const [selectedFilter, setSelectedFilter] = useState("Todos");
-
-  const renderStars = (count: number) => {
-    return Array(5)
-      .fill(0)
-      .map((_, i) => (
-        <Ionicons
-          key={i}
-          name="star"
-          size={16}
-          color={i < count ? "#EAB308" : "#D1D5DB"}
-        />
-      ));
-  };
-
-  return (
-    <View className="pt-4">
-      {/* Filtros */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="mb-4"
-      >
-        {filters.map((filter) => (
-          <TouchableOpacity
-            key={filter}
-            onPress={() => setSelectedFilter(filter)}
-            className={`py-2 px-4 rounded-lg border mr-2 ${selectedFilter === filter ? "bg-purple-100 border-purple-500" : "bg-white border-gray-300"}`}
-          >
-            <Text
-              className={`font-semibold ${selectedFilter === filter ? "text-purple-600" : "text-gray-600"}`}
-            >
-              {filter}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Caixa de Comentário */}
-      <View className="flex-row items-center border border-gray-300 rounded-lg p-2 mb-6">
-        <Ionicons name="chatbubble-outline" size={20} color="#6B7280" />
-        <TextInput
-          multiline={true}
-          numberOfLines={5}
-          placeholder="Deixar seu comentário..."
-          className="flex-1 mx-2 text-gray-700"
-        />
-        <TouchableOpacity className="bg-purple-600 w-10 h-10 rounded-full justify-center items-center">
-          <Ionicons name="send" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Cartão de Avaliação */}
-      <View>
-        <View className="flex-row items-start mb-2">
-          <Image
-            source={reviewData.userAvatar}
-            className="w-10 h-10 rounded-full mr-3"
-          />
-          <View className="flex-1">
-            <Text className="font-sansBold text-base text-gray-800">
-              {reviewData.userName}
-            </Text>
-            <View className="flex-row items-center mt-1">
-              <View className="flex-row mr-2">
-                {renderStars(reviewData.rating)}
-              </View>
-              <Text className="text-sm text-gray-500">{reviewData.date}</Text>
-            </View>
-          </View>
-        </View>
-        <Text className="text-gray-700 leading-6 mb-4">
-          {reviewData.comment}
-        </Text>
-
-        {/* Galeria de Imagens */}
-        <ModalImageCarousel source={reviewImgs} resizeMode="cover" />
-        {/* 
-        <View className="flex-row h-48">
-          <Image
-            source={reviewData.images[0]}
-            className="w-1/2 h-full rounded-lg mr-2"
-            resizeMode="cover"
-          />
-          <View className="w-1/2 h-full flex-col">
-            <Image
-              source={reviewData.images[1]}
-              className="h-[48%] w-full rounded-lg mb-2"
-              resizeMode="cover"
-            />
-            <View className="h-[48%] w-full relative">
-              <Image
-                source={reviewData.images[2]}
-                className="h-full w-full rounded-lg"
-                resizeMode="cover"
-              />
-              {reviewData.images.length > 3 && (
-                <View className="absolute inset-0 bg-black/50 rounded-lg justify-center items-center">
-                  <Text className="text-white text-2xl font-sansBold">
-                    +{reviewData.images.length - 2}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-      </View> 
-      */}
-      </View>
-    </View>
-  );
-};
 
 // Componente para a aba "Serviços"
 const ServicesSection = () => {
@@ -236,6 +77,67 @@ export default function LaundryProfileScreen({ route }: any) {
   const [activeTab, setActiveTab] = useState<"Avaliações" | "Serviços">(
     "Avaliações"
   );
+
+  // --- ESTADOS DE DADOS (LIFTED STATE) ---
+  const [allFeedbacks, setAllFeedbacks] = useState<Feedback[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+
+  const laundryId = route.params.params.id;
+
+  const fetchFeedbacks = async (isRefreshing = false) => {
+    if (!laundryId) return;
+
+    const pageToFetch = isRefreshing ? 1 : page;
+    if (isRefreshing) {
+      setIsLoading(true);
+    } else {
+      setIsLoadingMore(true);
+    }
+
+    const newFeedbacks = await getFeedbacks(laundryId, pageToFetch);
+
+    if (newFeedbacks.length > 0) {
+      setAllFeedbacks((prev) =>
+        isRefreshing ? newFeedbacks : [...prev, ...newFeedbacks]
+      );
+      setPage(pageToFetch + 1);
+    }
+    if (newFeedbacks.length < 10) {
+      setHasMore(false);
+    }
+
+    setIsLoading(false);
+    setIsLoadingMore(false);
+  };
+
+  useEffect(() => {
+    fetchFeedbacks(true); // Carga inicial
+  }, [laundryId]);
+
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore) {
+      fetchFeedbacks();
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchFeedbacks(true);
+  };
+
+  const filteredFeedbacks = useMemo(() => {
+    // Se o filtro for null ("Todos"), retorna a lista completa
+    if (selectedFilter === null) {
+      return allFeedbacks;
+    }
+    // Se não for null, é uma string como "5★", então podemos filtrar
+    const starFilter = parseInt(selectedFilter.charAt(0));
+    return allFeedbacks.filter((fb) => fb.feedbackPost.rate === starFilter);
+  }, [allFeedbacks, selectedFilter]);
+
   const date = new Date();
   date.setMinutes(date.getMinutes() + route.params.params.duration);
 
@@ -359,12 +261,7 @@ export default function LaundryProfileScreen({ route }: any) {
                   {route.params.params.opening}
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={() => {
-                  console.log(route.params);
-                }}
-                className="flex-row items-center border border-gray-300 rounded-lg p-3 flex-1"
-              >
+              <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-lg p-3 flex-1">
                 <Ionicons
                   name="chatbubbles-outline"
                   size={24}
@@ -408,7 +305,24 @@ export default function LaundryProfileScreen({ route }: any) {
 
           {/* Conteúdo da Aba */}
           {activeTab === "Avaliações" ? (
-            <ReviewsSection />
+            isLoading && page === 1 ? (
+              <ActivityIndicator
+                size="large"
+                color="#8A63D2"
+                className="my-10"
+              />
+            ) : (
+              <ReviewsSection
+                laundryId={laundryId}
+                reviews={filteredFeedbacks}
+                selectedFilter={selectedFilter}
+                onFilterChange={setSelectedFilter}
+                onLoadMore={handleLoadMore}
+                onFeedbackPosted={handleRefresh}
+                isLoadingMore={isLoadingMore}
+                hasMore={hasMore}
+              />
+            )
           ) : (
             <ServicesSection />
           )}

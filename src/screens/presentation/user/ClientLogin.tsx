@@ -74,6 +74,7 @@ export default function ClientLogin() {
           }
           setCustomerData({
             token: body.token,
+            id: customer.customer.id,
             name: customer.customer.name || "",
             email: customer.customer.email,
             cpf: customer.customer.doc || "",

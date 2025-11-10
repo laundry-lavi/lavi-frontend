@@ -98,7 +98,10 @@ export default function LaundryProfileScreen() {
                       Lavanderia Lava-bem
                     </Text>
                   </View>
-                  <TouchableOpacity className="bg-gray-100 p-2 rounded-full">
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("SettingsScreen")}
+                    className="bg-gray-100 p-2 rounded-full"
+                  >
                     <Ionicons name="settings-outline" size={24} color="#333" />
                   </TouchableOpacity>
                 </View>
@@ -141,7 +144,10 @@ export default function LaundryProfileScreen() {
                       {profileData.name}
                     </Text>
                   </View>
-                  <TouchableOpacity className="bg-gray-100 p-2 rounded-full">
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate("SettingsScreen")}
+                    className="bg-gray-100 p-2 rounded-full"
+                  >
                     <Ionicons name="settings-outline" size={24} color="#333" />
                   </TouchableOpacity>
                 </View>

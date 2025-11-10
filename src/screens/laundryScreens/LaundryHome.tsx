@@ -235,7 +235,14 @@ export default function LaundryHomeScreen() {
                   ))}
                 </View>
                 <Text className="text-sm font-semibold text-gray-600">
-                  Alta Qualidade
+                  {(() => {
+                    const r = Number(rating);
+                    if (r >= 4.5) return "Qualidade Impecável";
+                    if (r >= 3.5) return "Serviço de Confiança";
+                    if (r >= 2.5) return "Resultados Satisfatórios";
+                    if (r >= 1.5) return "Qualidade Inconsistente";
+                    return "Não Recomendado";
+                  })()}
                 </Text>
               </View>
             </View>

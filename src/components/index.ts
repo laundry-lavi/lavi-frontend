@@ -10,3 +10,5 @@ export { default as ModalImage } from "./ModalImage";
 export { default as ModalImageCarousel } from "./ModalImageCarousel";
 export { default as StarRating } from "./StarRating";
 export { default as InfoField } from "./InfoField";
+export { default as FeedbackCard } from "./FeedbackCard";
+export { default as ReviewsSection } from "./ReviewsSection";

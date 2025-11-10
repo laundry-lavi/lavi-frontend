@@ -8,6 +8,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type CustomerData = {
+  id: string;
   birthDate: string;
   address: string;
   gender: string;
