@@ -9,9 +9,11 @@ import {
   ImageSourcePropType,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
+import * as Clipboard from "expo-clipboard";
 
 import {
   ModalImage,
@@ -142,12 +144,25 @@ export default function LaundryProfileScreen({ route }: any) {
   date.setMinutes(date.getMinutes() + route.params.params.duration);
 
   const makeRate = (grade: number[]) => {
+    if (grade.length === 0) {
+      return "0 avaliações";
+    }
     let rate = 0;
     grade.forEach((g) => {
       rate += g;
     });
     const finalRate = rate / grade.length;
-    return finalRate;
+    return finalRate.toFixed(1);
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await Clipboard.setStringAsync(text);
+      Alert.alert("Sucesso", "Texto copiado para a área de transferência!");
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível copiar o texto.");
+      console.error(error);
+    }
   };
 
   return (
@@ -186,19 +201,22 @@ export default function LaundryProfileScreen({ route }: any) {
             {date.getMinutes().toString().padStart(2, "0")}
           </Text>
           <View className="flex-row items-center mt-1">
-            <Text className="text-yellow-500 font-sansBold mr-1">
-              {
-                4.5
-                //makeRate(route.params.params.grade).toFixed(1)
-              }
+            {route.params.params.grade.length !== 0 && (
+              <Text className="text-lg text-yellow-500 mr-1">
+                (
+                {route.params.params.grade.length > 50
+                  ? "+50"
+                  : route.params.params.grade.length}
+                )
+              </Text>
+            )}
+            <Text className="text-yellow-500 text-lg font-sansBold mr-1">
+              {makeRate(route.params.params.grade)}
             </Text>
             <Text className="text-yellow-500">
               <StarRating
-                starSize={14}
-                rating={
-                  4.5
-                  //Number(makeRate(route.params.params.grade).toFixed(1))
-                }
+                starSize={20}
+                rating={Number(makeRate(route.params.params.grade))}
               />
             </Text>
           </View>
@@ -213,9 +231,13 @@ export default function LaundryProfileScreen({ route }: any) {
                   color="#4B5563"
                   className="mt-1"
                 />
-                <Text className="text-sm text-gray-700 ml-3">
-                  +55 11 98765-4900
-                </Text>
+                <TouchableOpacity
+                  onPress={() => copyToClipboard("+55 11 98765-4900")}
+                >
+                  <Text className="text-sm text-gray-700 ml-3">
+                    +55 11 98765-4900
+                  </Text>
+                </TouchableOpacity>
               </View>
               <TouchableOpacity
                 onPress={() =>
@@ -243,9 +265,16 @@ export default function LaundryProfileScreen({ route }: any) {
                   color="#4B5563"
                   className="mt-1"
                 />
-                <Text className="text-sm text-gray-700 ml-3" numberOfLines={2}>
-                  {route.params.params.address}
-                </Text>
+                <TouchableOpacity
+                  onPress={() => copyToClipboard(route.params.params.address)}
+                >
+                  <Text
+                    className="text-sm text-gray-700 ml-3"
+                    numberOfLines={2}
+                  >
+                    {route.params.params.address}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 

@@ -17,6 +17,7 @@
     "@react-navigation/stack": "^7.4.2",
     "expo": "~53.0.17",
     "expo-font": "~13.3.2",
+    "expo-image-picker": "~16.1.4",
     "expo-location": "~18.1.6",
     "expo-splash-screen": "~0.30.10",
     "expo-status-bar": "~2.2.3",
@@ -31,7 +32,7 @@
     "react-native-pie-chart": "^4.0.1",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "^5.4.0",
-    "expo-image-picker": "~16.1.4"
+    "expo-clipboard": "~7.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -2,7 +2,8 @@ import { Feedback } from "@/types/";
 
 export default async function getFeedbacks(
   laundryId: string,
-  page: number = 1 // Adiciona o parâmetro de página com valor padrão 1
+  page: number = 1, // Adiciona o parâmetro de página com valor padrão 1
+  pageSize: number = 10
 ): Promise<Feedback[]> {
   // Retorna um array vazio se o laundryId não for válido
   if (!laundryId) {
@@ -10,7 +11,7 @@ export default async function getFeedbacks(
   }
 
   const response = await fetch(
-    `https://illuminational-earlene-incoherently.ngrok-free.dev/feedbacks/${laundryId}?page=${page}&pageSize=10`
+    `https://illuminational-earlene-incoherently.ngrok-free.dev/feedbacks/${laundryId}?page=${page}&pageSize=${pageSize}`
   );
 
   // Adiciona um tratamento de erro básico

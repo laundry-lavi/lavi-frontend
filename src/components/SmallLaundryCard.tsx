@@ -8,12 +8,15 @@ import StarRating from "./StarRating";
 
 export default function SmallLaundryCard({ item }: { item: Laundry }) {
   const makeRate = (grade: number[]) => {
+    if (grade.length === 0) {
+      return "0 avaliações";
+    }
     let rate = 0;
     grade.forEach((g) => {
       rate += g;
     });
     const finalRate = rate / grade.length;
-    return finalRate;
+    return finalRate.toFixed(1);
   };
   const date = new Date();
   date.setMinutes(date.getMinutes() + item.duration);
@@ -26,14 +29,16 @@ export default function SmallLaundryCard({ item }: { item: Laundry }) {
           {item.name}
         </Text>
         <View className="flex-row items-center mt-2">
+          {item.grade.length !== 0 && (
+            <Text className="text-sm text-yellow-500 mr-1">
+              ({item.grade.length > 50 ? "+50" : item.grade.length})
+            </Text>
+          )}
           <Text className="text-sm text-yellow-500 mr-1">
-            {makeRate(item.grade).toFixed(1)}
+            {makeRate(item.grade)}
           </Text>
           <Text className="text-yellow-500">
-            <StarRating
-              starSize={14}
-              rating={Number(makeRate(item.grade).toFixed(1))}
-            />
+            <StarRating starSize={14} rating={Number(makeRate(item.grade))} />
           </Text>
         </View>
         <View className="flex flex-row justify-between">

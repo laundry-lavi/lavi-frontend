@@ -1,6 +1,6 @@
 import React, { createContext, useState } from "react";
 
-import { distance } from "@/functions";
+import { distance, getFeedbacks } from "@/functions";
 import { LocationContext } from "./LocationContext";
 
 export const LaundriesListContext = createContext({
@@ -16,9 +16,12 @@ export function LaundriesListProvider({
   const [laundriesList, setLaundriesList] = useState<any[]>([]);
   const { location } = React.useContext(LocationContext);
 
-  function gerarNumeroAleatorio() {
-    let numero = Math.random() * 5;
-    return Number(numero.toFixed(1));
+  async function fetchRating(laundryId: string) {
+    const feedbacks = await getFeedbacks(laundryId, 1, 1000);
+    const feedbacksRating = feedbacks.map((feedback) => {
+      return feedback.feedbackPost.rate;
+    });
+    return feedbacksRating;
   }
 
   const getLaundriesList = async () => {
@@ -37,6 +40,7 @@ export function LaundriesListProvider({
           lat2: laundry.latitude.toString(),
           lng2: laundry.longitude.toString(),
         });
+        const grade = await fetchRating(laundry.id);
 
         setLaundriesList((prev) => [
           ...prev,
@@ -44,7 +48,7 @@ export function LaundriesListProvider({
             ...laundry,
             distance: dist?.distance,
             duration: dist?.duration,
-            grade: [gerarNumeroAleatorio()],
+            grade: grade,
           },
         ]);
       }
