@@ -43,7 +43,10 @@ export default function Welcome() {
         <View className="flex-[4] items-center justify-center gap-3">
           <TouchableOpacity
             className="w-[80%] py-3 items-center bg-[#822083] rounded-lg"
-            onPress={() => navigation.navigate("CorpWelcome")}
+            onPress={() => {
+              setIsLaundryTrue();
+              navigation.navigate("CorpWelcome");
+            }}
           >
             <Text className="text-white text-base font-sansBold">
               Sou empreendedor
@@ -51,7 +54,10 @@ export default function Welcome() {
           </TouchableOpacity>
           <TouchableOpacity
             className="w-[80%] py-3 items-center bg-[#370e38] rounded-lg"
-            onPress={() => navigation.navigate("ClientWelcome")}
+            onPress={() => {
+              setIsLaundryFalse();
+              navigation.navigate("ClientWelcome");
+            }}
           >
             <Text className="text-white text-base font-sansBold">
               Sou Cliente
