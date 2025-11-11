@@ -10,6 +10,8 @@ import {
   LaundriesListContext,
   CustomerContext,
 } from "@/contexts/";
+import { clientSocket } from "@/socket.io/client";
+import { registerForPushNotificationsAsync } from "@/notification";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
@@ -18,6 +20,8 @@ export default function HomeScreen() {
   const { laundriesList, getLaundriesList } = useContext(LaundriesListContext);
 
   useEffect(() => {
+    registerForPushNotificationsAsync();
+
     if (isLaundry) {
       return;
     }
@@ -26,6 +30,12 @@ export default function HomeScreen() {
     };
     fetchLaundries();
   }, []);
+
+  useEffect(() => {
+    clientSocket.on("notification", data => {
+      console.log(notification)
+    })
+  })
 
   return isLaundry ? (
     <LaundryHome />
