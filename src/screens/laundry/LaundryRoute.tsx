@@ -13,7 +13,11 @@ export default function LaundryRoute({ route }: any) {
         component={LaundryProfile}
         initialParams={route}
       />
-      <Stack.Screen name="LaundryScheduleScreen" component={LaundrySchedule} />
+      <Stack.Screen
+        name="LaundryScheduleScreen"
+        component={LaundrySchedule}
+        initialParams={route.params}
+      />
       <Stack.Screen name="ConcludedOrderScreen" component={ConcludedOrder} />
     </Stack.Navigator>
   );

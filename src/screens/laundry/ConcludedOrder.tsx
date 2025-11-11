@@ -1,16 +1,24 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useContext } from "react";
 import {
   SafeAreaView,
   View,
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Feather from "@expo/vector-icons/Feather";
 import Modal from "react-native-modal";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
+import * as Clipboard from "expo-clipboard";
+
 import { BackArrow, Text } from "@/components";
+import { CustomerContext } from "@/contexts";
 
 // --- DADOS PARA MAPEAMENTO (pode ser importado de um arquivo de constantes) ---
 const clothingDropdownData = [
@@ -71,7 +79,8 @@ const DeliveryOptionCard = ({
 
 // --- TELA PRINCIPAL ---
 export default function OrderCompletedScreen() {
-  const navigation = useNavigation();
+  const { customerData } = useContext(CustomerContext);
+  const navigation = useNavigation<NavigationProp<any>>();
   const route = useRoute();
   const {
     orderItems,
@@ -103,6 +112,16 @@ export default function OrderCompletedScreen() {
   };
   const getClothingPrice = (value: string) => {
     return clothingDropdownData.find((c) => c.value === value)?.price || 0;
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await Clipboard.setStringAsync(text);
+      Alert.alert("Sucesso", "Texto copiado para a área de transferência!");
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível copiar o texto.");
+      console.error(error);
+    }
   };
 
   return (
@@ -147,7 +166,13 @@ export default function OrderCompletedScreen() {
           <Text className="text-[#a276d7] text-xl font-sansBold text-center mb-3">
             R$ {totalValue.toFixed(2).replace(".", ",")}
           </Text>
-          <TouchableOpacity className="bg-[#a276d7] w-[70%] p-3 rounded-md">
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("LaundryProfile");
+              copyToClipboard("email.pix@gmail.com");
+            }}
+            className="bg-[#a276d7] w-[70%] p-3 rounded-md"
+          >
             <Text className="text-white font-sansBold text-center">
               Copiar Código Pix
             </Text>
@@ -190,12 +215,13 @@ export default function OrderCompletedScreen() {
             <DeliveryOptionCard
               title="Entrega a Domicílio"
               cep="09818-180"
-              address="R. Das Flores, 123, São Paulo - SP"
+              address={customerData?.address}
               isSelected={deliveryType === "delivery"}
               onPress={() => setDeliveryType("delivery")}
             />
             <DeliveryOptionCard
               title="Buscar no local"
+              address={route.params?.laundryDetails.address}
               isSelected={deliveryType === "pickup"}
               onPress={() => setDeliveryType("pickup")}
             />

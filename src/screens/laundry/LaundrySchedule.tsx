@@ -15,6 +15,7 @@ import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { Dropdown } from "react-native-element-dropdown";
 
 import { BackArrow, Text } from "@/components";
+import { CustomerContext, LocationContext } from "@/contexts";
 
 const clothingDropdownData = [
   { label: "Camisa", value: "camisa", price: 30.0 },
@@ -50,7 +51,73 @@ type OrderItem = {
 type DeliveryType = "delivery" | "pickup";
 type PaymentType = "pix" | null;
 
+type DeliveryOptionProps = {
+  title: string;
+  cep?: string;
+  address?: string;
+  isSelected: boolean;
+  onPress: () => void;
+};
+
+type OrderType = {
+  details: string;
+  status: string;
+  delivery_type: string;
+  latitude: string;
+  longitude: string;
+  laundryId: string;
+  customerId: string;
+};
+
+type ItemType = {
+  qntd: number;
+  unitPrice_inCents: number;
+  name: string;
+  color: string;
+  service: string;
+};
+
 // --- COMPONENTES ---
+
+const DeliveryOptionCard = ({
+  title,
+  cep,
+  address,
+  isSelected,
+  onPress,
+}: DeliveryOptionProps) => (
+  <TouchableOpacity
+    onPress={onPress}
+    className={`flex-1 rounded-lg border p-3 ${
+      isSelected
+        ? "bg-purple-300 border-purple-500"
+        : "bg-white border-gray-300"
+    }`}
+  >
+    <View className="flex-row justify-between items-start">
+      <View className="flex-1">
+        <Text
+          className={`font-bold ${
+            isSelected ? "text-purple-900" : "text-gray-700"
+          }`}
+        >
+          {title}
+        </Text>
+        {cep && (
+          <Text className="text-xs text-purple-800 mt-1">CEP: {cep}</Text>
+        )}
+        {address && <Text className="text-xs text-purple-800">{address}</Text>}
+      </View>
+      <View
+        className={`w-5 h-5 rounded-full border-2 justify-center items-center ${
+          isSelected ? "border-white bg-purple-900" : "border-gray-400"
+        }`}
+      >
+        {isSelected && <View className="w-2 h-2 rounded-full bg-white" />}
+      </View>
+    </View>
+  </TouchableOpacity>
+);
 
 const ScreenHeader = () => (
   <View className="flex-row items-center p-4 pl-14 pt-6 bg-gray-50">
@@ -257,6 +324,8 @@ const RadioButton = ({ selected }: { selected: boolean }) => (
 
 // --- TELA PRINCIPAL ---
 export default function LaundryScheduleScreen({ route }: any) {
+  const { location } = useContext(LocationContext);
+  const { customerData } = useContext(CustomerContext);
   const navigation = useNavigation<NavigationProp<any>>();
   const [orderItems, setOrderItems] = useState<OrderItem[]>([
     {
@@ -324,26 +393,94 @@ export default function LaundryScheduleScreen({ route }: any) {
     );
   };
 
-  const handleConcludeOrder = () => {
-    // Filtra apenas os itens que têm uma quantidade maior que 0
+  const createOrder = async (order: OrderType, items: ItemType[]) => {
+    try {
+      const response = await fetch(
+        "https://illuminational-earlene-incoherently.ngrok-free.dev/orders",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            order: {
+              details: order.details,
+              status: order.status,
+              delivery_type: order.delivery_type,
+              latitude: order.latitude,
+              longitude: order.longitude,
+              laundryId: order.laundryId,
+              customerId: order.customerId,
+            },
+            items: [...items],
+          }),
+        }
+      );
+
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      console.error("Erro ao criar o pedido:", error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Erro desconhecido ao criar o pedido.";
+      alert(errorMessage);
+    }
+  };
+
+  const handleConcludeOrder = async () => {
     const finalOrderItems = orderItems.filter(
       (item) => parseInt(item.quantity, 10) > 0 && item.clothing
     );
 
     if (finalOrderItems.length === 0) {
-      // Opcional: Adicionar um alerta para o usuário
-      alert("Por favor, adicione pelo menos um item ao seu pedido.");
+      alert("Por favor, adicione pelo menos um item válido ao seu pedido.");
       return;
     }
 
-    navigation.navigate("ConcludedOrderScreen", {
-      orderItems: finalOrderItems,
-      totalPieces,
-      totalValue,
-      deliveryType,
-      shippingFee,
-      laundryDetails: route.params,
+    const itemsToApi: ItemType[] = finalOrderItems.map((item) => {
+      const clothingLabel =
+        clothingDropdownData.find((c) => c.value === item.clothing)?.label ||
+        item.clothing;
+      const unitPriceInCents =
+        (parseFloat(item.value.replace(",", ".")) / Number(item.quantity)) *
+        100;
+
+      return {
+        qntd: Number(item.quantity),
+        unitPrice_inCents: Math.round(unitPriceInCents),
+        name: clothingLabel,
+        color: item.color,
+        service: item.washType,
+      };
     });
+
+    const orderToApi: OrderType = {
+      details: `Pedido com ${totalPieces} peças. Valor total: R$ ${totalValue
+        .toFixed(2)
+        .replace(".", ",")}`,
+      status: "pending",
+      delivery_type: deliveryType,
+      latitude: String(location.coords.latitude),
+      longitude: String(location.coords.longitude),
+      laundryId: String(route.params.id),
+      customerId: String(customerData?.id),
+    };
+
+    const result = await createOrder(orderToApi, itemsToApi);
+
+    if (result) {
+      navigation.navigate("ConcludedOrderScreen", {
+        order: result.order,
+        orderItems: finalOrderItems,
+        totalPieces,
+        totalValue,
+        deliveryType,
+        shippingFee,
+        laundryDetails: route.params,
+      });
+    }
   };
 
   return (
@@ -377,67 +514,20 @@ export default function LaundryScheduleScreen({ route }: any) {
           {/* Tipos de Entrega */}
           <View className="my-6">
             <SectionTitle title="Tipos de Entrega" />
-            <View className="flex-row justify-between px-4 mt-4">
-              <TouchableOpacity
+            <View className="flex-row justify-between px-4 mt-4 gap-3">
+              <DeliveryOptionCard
+                title="Entrega a Domicílio"
+                cep="09818-180"
+                address={customerData?.address}
+                isSelected={deliveryType === "delivery"}
                 onPress={() => setDeliveryType("delivery")}
-                className={`flex-1 p-3 mr-2 rounded-lg border ${
-                  deliveryType === "delivery"
-                    ? "bg-purple-400 border-purple-400"
-                    : "bg-white border-gray-300"
-                }`}
-              >
-                <View className="flex-row justify-between items-center">
-                  <View className="w-[85%]">
-                    <Text
-                      className={`font-bold  ${
-                        deliveryType === "delivery"
-                          ? "text-white"
-                          : "text-gray-800"
-                      }`}
-                    >
-                      Entrega a Domicílio
-                    </Text>
-                    <Text
-                      className={`mt-1 ${
-                        deliveryType === "delivery"
-                          ? "text-purple-50"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      CEP: 09818-180
-                    </Text>
-                    <Text
-                      className={`${
-                        deliveryType === "delivery"
-                          ? "text-purple-50"
-                          : "text-gray-500"
-                      }`}
-                    >
-                      R. Das Flores, 123, São Paulo - SP
-                    </Text>
-                  </View>
-                  <RadioButton selected={deliveryType === "delivery"} />
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
+              />
+              <DeliveryOptionCard
+                title="Buscar no local"
+                address={route.params.address}
+                isSelected={deliveryType === "pickup"}
                 onPress={() => setDeliveryType("pickup")}
-                className={`flex-1 p-4 rounded-lg border items-center justify-center ${
-                  deliveryType === "pickup"
-                    ? "bg-purple-400 border-purple-400"
-                    : "bg-white border-gray-300"
-                }`}
-              >
-                <View className="flex-row justify-between items-center w-full">
-                  <Text
-                    className={`font-bold ${
-                      deliveryType === "pickup" ? "text-white" : "text-gray-800"
-                    }`}
-                  >
-                    Buscar no local
-                  </Text>
-                  <RadioButton selected={deliveryType === "pickup"} />
-                </View>
-              </TouchableOpacity>
+              />
             </View>
           </View>
 
