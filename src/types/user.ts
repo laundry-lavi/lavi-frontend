@@ -6,6 +6,7 @@ export interface UserSignin {
   email: string;
   address: string;
   gender: string;
+  cep: string;
   isPj: boolean;
   name: string;
   password: string;

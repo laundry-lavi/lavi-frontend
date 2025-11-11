@@ -32,6 +32,7 @@ import {
 } from "@/constants/inputMasks";
 import { checkingCep } from "@/functions";
 import { CustomerContext } from "@/contexts";
+import { apiUrl } from "@/constants/env";
 
 const dropdownData = [
   { label: "Masculino", value: "1" },
@@ -96,13 +97,14 @@ export default function ClientSignin() {
     isPj,
     doc,
     birthDate,
+    cep,
     gender,
     password,
     profileUrl,
     address,
   }: UserSignin) => {
-    await fetch(
-      "https://illuminational-earlene-incoherently.ngrok-free.dev/customer",
+    const response = await fetch(
+      `${apiUrl}/customer`,
       {
         method: "POST",
         headers: {
@@ -115,6 +117,7 @@ export default function ClientSignin() {
             email: email,
             is_pj: isPj,
             doc: doc,
+            cep,
             birth_date: date.toISOString().slice(0, 10),
             gender: gender,
             password: password,
@@ -122,42 +125,34 @@ export default function ClientSignin() {
           },
         }),
       }
-    )
-      .then((response) => response.json())
-      .then((body) => {
-        if (body.details === "E-mail já cadastrado!") {
-          Alert.alert("Erro!", "E-mail já cadastrado!");
-          return;
-        }
-        if (body.details === "Identidade já existe.") {
-          Alert.alert("Erro!", "CPF ou CNPJ já cadastrado!");
-          return;
-        }
+    );
 
-        console.log(body);
+    const body = await response.json();
+    console.log(body);
+    if(response.status != 201) {
+      console.log("Conta não criada.");
+      Alert.alert("Erro!", body.details);
+      return;
+    }
 
-        setCustomerData({
-          name: formData.name,
-          email: formData.email,
-          cpf: formData.doc,
-          birthDate: date.toISOString().slice(0, 10),
-          address: `${formData.address}, ${formData.neighbourhood}, ${formData.city}, ${formData.cep}`,
-          gender: formData.gender,
-          isPj: formData.isPj,
-          password: password,
-          profileUrl: null,
-          memberId: body.customer_id,
-          role: "customer",
-        });
-        navigation.navigate("ClientLogin");
-        Alert.alert(
-          "Sucesso!",
-          "Formulário preenchido corretamente, agora faça login com o email e senha cadastrados."
-        );
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    setCustomerData({
+      name: formData.name,
+      email: formData.email,
+      cpf: formData.doc,
+      birthDate: date.toISOString().slice(0, 10),
+      address: `${formData.address}, ${formData.neighbourhood}, ${formData.city}, ${formData.cep}`,
+      gender: formData.gender,
+      isPj: formData.isPj,
+      password: password,
+      profileUrl: null,
+      memberId: body.customer_id,
+      role: "customer",
+    });
+    navigation.navigate("ClientLogin");
+    Alert.alert(
+      "Sucesso!",
+      "Formulário preenchido corretamente, agora faça login com o email e senha cadastrados."
+    );
   };
 
   const isOldEnough = (birthDate: string): boolean => {
@@ -238,6 +233,7 @@ export default function ClientSignin() {
         email: formData.email,
         password: password,
         birthDate: formData.birthDate,
+        cep: formData.cep,
         doc: formData.doc,
         gender: formData.gender,
         isPj: formData.isPj,

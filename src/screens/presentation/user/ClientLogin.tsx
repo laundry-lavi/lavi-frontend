@@ -16,6 +16,8 @@ import { Text, BackArrow, PasswordInput } from "@/components";
 import { UserLogin } from "@/types";
 import { CustomerContext } from "@/contexts";
 import { getCustomer } from "@/functions/";
+import { apiUrl } from "@/constants/env";
+import * as SecureStore from 'expo-secure-store';
 
 const dados = {
   email: "test3123@gmail.com",
@@ -49,7 +51,7 @@ export default function ClientLogin() {
 
   const loginCostumer = (customer: UserLogin) => {
     fetch(
-      "https://illuminational-earlene-incoherently.ngrok-free.dev/customer/sign",
+      `${apiUrl}/customer/sign`,
       {
         method: "PUT",
         headers: {
@@ -61,12 +63,20 @@ export default function ClientLogin() {
         }),
       }
     )
-      .then((response) => response.json())
-      .then((body) => {
-        if (body.details === "Senha ou e-mail incorretos!") {
+      .then((response) => {
+        console.log(response.status)
+        if(response.status != 201) {
           Alert.alert("Erro!", "Senha ou e-mail incorretos!");
           return;
         }
+        return response.json()
+      })
+      .then((body) => {
+        console.log(body)
+        SecureStore.setItemAsync("customer-jwt", body.token).then(() => {
+          console.log("Token armazenado no SecureStore")
+          console.log(body.token)
+        })
         getCustomer(email).then((customer) => {
           if (!customer) {
             Alert.alert("Erro!", "Cliente não encontrado.");
