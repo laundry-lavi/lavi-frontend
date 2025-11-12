@@ -1,82 +1,69 @@
-import { useEffect, useState, useContext } from "react";
-import { View, Image } from "react-native";
-import MapView, { Marker, Callout } from "react-native-maps";
-import * as Location from "expo-location";
+// MapScreen.tsx (Versão Corrigida)
 
-import { Text, Header, BottomSheet } from "@/components";
-import { LocationContext } from "@/contexts";
+import React, { useEffect, useState, useContext, useRef } from "react";
+import { View } from "react-native";
+import MapView, { Marker } from "react-native-maps";
+
+// --- IMPORTAÇÕES CORRIGIDAS ---
+import { Header } from "@/components";
+// Importa o componente default e a tipagem nomeada diretamente do arquivo
+import BottomSheet, { BottomSheetRef } from "@/components/BottomSheet";
+import { LocationContext, LaundriesListContext } from "@/contexts";
 
 export default function Map() {
-  const { location: initialLocation } = useContext(LocationContext);
-  const [location, setLocation] = useState<Location.LocationObject>({
-    coords: {
-      accuracy: 100,
-      longitude: -46.7634294,
-      altitude: 745.5999755859375,
-      heading: 0,
-      latitude: -23.6051106,
-      altitudeAccuracy: 100,
-      speed: 0,
-    },
-    mocked: false,
-    timestamp: 1754479939608,
-  });
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { location } = useContext(LocationContext);
+  const { laundriesList, getLaundriesList } = useContext(LaundriesListContext);
+  const [selectedLaundryId, setSelectedLaundryId] = useState<string | null>(
+    null
+  );
+
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   useEffect(() => {
-    async function getCurrentLocation() {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
-        return;
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
+    if (location) {
+      getLaundriesList();
     }
-
-    getCurrentLocation();
   }, []);
 
+  const handleMarkerPress = (laundryId: string) => {
+    setSelectedLaundryId(laundryId);
+    bottomSheetRef.current?.open();
+  };
+
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1 }}>
       <Header />
       <MapView
         style={{ flex: 1 }}
         showsUserLocation={true}
-        initialRegion={{
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
+        initialRegion={
+          location
+            ? {
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }
+            : undefined
+        }
       >
-        <Marker
-          key={1}
-          coordinate={{
-            latitude: -23.6061106,
-            longitude: -46.7634294,
-          }}
-          icon={require("assets/laund176.png")}
-        />
-        <Marker
-          key={2}
-          coordinate={{
-            latitude: -23.6561106,
-            longitude: -46.7634294,
-          }}
-          icon={require("assets/laund176.png")}
-        />
-        <Marker
-          key={3}
-          coordinate={{
-            latitude: -23.6161106,
-            longitude: -46.7869294,
-          }}
-          icon={require("assets/laund176.png")}
-        />
+        {laundriesList.map((laundry) => (
+          <Marker
+            key={laundry.id}
+            coordinate={{
+              latitude: Number(laundry.latitude),
+              longitude: Number(laundry.longitude),
+            }}
+            onPress={() => handleMarkerPress(laundry.id)}
+            pinColor={selectedLaundryId === laundry.id ? "blue" : "red"}
+          />
+        ))}
       </MapView>
-      <BottomSheet />
+      <BottomSheet
+        ref={bottomSheetRef}
+        laundriesList={laundriesList}
+        selectedLaundryId={selectedLaundryId}
+      />
     </View>
   );
 }
