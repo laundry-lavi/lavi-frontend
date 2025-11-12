@@ -3,20 +3,22 @@ import {
   SafeAreaView,
   View,
   ScrollView,
-  Image,
   TouchableOpacity,
   TextInput,
-  ImageSourcePropType,
   KeyboardAvoidingView,
-  Platform,
+  Platform, // Importado para lidar com o comportamento do KeyboardAvoidingView
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { Dropdown } from "react-native-element-dropdown";
+// 1. IMPORTAR O DATETIMEPICKER
+import DateTimePicker from "@react-native-community/datetimepicker";
 
 import { BackArrow, Text } from "@/components";
 import { CustomerContext, LocationContext } from "@/contexts";
+import { OrderType, ItemType } from "@/types";
 
+// --- DEMAIS COMPONENTES E LÓGICA (sem alterações) ---
 const clothingDropdownData = [
   { label: "Camisa", value: "camisa", price: 30.0 },
   { label: "Calça", value: "calca", price: 25.0 },
@@ -36,8 +38,6 @@ const colorDropdownData = [
   { label: "Preto", value: "preto" },
   { label: "Colorido", value: "colorido" },
 ];
-
-// --- TIPAGEM (TYPESCRIPT) ---
 
 type OrderItem = {
   id: number;
@@ -59,26 +59,6 @@ type DeliveryOptionProps = {
   onPress: () => void;
 };
 
-type OrderType = {
-  details: string;
-  status: string;
-  delivery_type: string;
-  latitude: string;
-  longitude: string;
-  laundryId: string;
-  customerId: string;
-};
-
-type ItemType = {
-  qntd: number;
-  unitPrice_inCents: number;
-  name: string;
-  color: string;
-  service: string;
-};
-
-// --- COMPONENTES ---
-
 const DeliveryOptionCard = ({
   title,
   cep,
@@ -88,18 +68,12 @@ const DeliveryOptionCard = ({
 }: DeliveryOptionProps) => (
   <TouchableOpacity
     onPress={onPress}
-    className={`flex-1 rounded-lg border p-3 ${
-      isSelected
-        ? "bg-purple-300 border-purple-500"
-        : "bg-white border-gray-300"
-    }`}
+    className={`flex-1 rounded-lg border p-3 ${isSelected ? "bg-purple-300 border-purple-500" : "bg-white border-gray-300"}`}
   >
     <View className="flex-row justify-between items-start">
       <View className="flex-1">
         <Text
-          className={`font-bold ${
-            isSelected ? "text-purple-900" : "text-gray-700"
-          }`}
+          className={`font-bold ${isSelected ? "text-purple-900" : "text-gray-700"}`}
         >
           {title}
         </Text>
@@ -109,9 +83,7 @@ const DeliveryOptionCard = ({
         {address && <Text className="text-xs text-purple-800">{address}</Text>}
       </View>
       <View
-        className={`w-5 h-5 rounded-full border-2 justify-center items-center ${
-          isSelected ? "border-white bg-purple-900" : "border-gray-400"
-        }`}
+        className={`w-5 h-5 rounded-full border-2 justify-center items-center ${isSelected ? "border-white bg-purple-900" : "border-gray-400"}`}
       >
         {isSelected && <View className="w-2 h-2 rounded-full bg-white" />}
       </View>
@@ -143,7 +115,6 @@ const LaundryInfoCard = ({ laundry }: any) => (
   </View>
 );
 
-// Interface para as propriedades do OrderItemRow
 interface OrderItemRowProps {
   item: OrderItem;
   onChange: (
@@ -176,7 +147,6 @@ function OrderItemRow({ item, onChange, removeOrderItem }: OrderItemRowProps) {
   return (
     <View className="mb-3 border border-purple-500 rounded-lg p-2 bg-white">
       <View className="flex flex-row gap-3 items-center">
-        {/* Vestimenta */}
         <View className="flex-1">
           <Text className="text-xs font-bold mb-1">Vestimenta</Text>
           <Dropdown
@@ -204,8 +174,6 @@ function OrderItemRow({ item, onChange, removeOrderItem }: OrderItemRowProps) {
             }}
           />
         </View>
-
-        {/* Tipo de lavagem */}
         <View className="flex-1">
           <Text className="text-xs font-bold mb-1">Tipo de lavagem</Text>
           <Dropdown
@@ -233,8 +201,6 @@ function OrderItemRow({ item, onChange, removeOrderItem }: OrderItemRowProps) {
             }}
           />
         </View>
-
-        {/* Quant. */}
         <View style={{ width: 60 }}>
           <Text className="text-xs font-bold mb-1 text-center">Quant.</Text>
           <TextInput
@@ -245,9 +211,7 @@ function OrderItemRow({ item, onChange, removeOrderItem }: OrderItemRowProps) {
           />
         </View>
       </View>
-
       <View className="flex flex-row gap-3 items-center mt-3">
-        {/* Cor */}
         <View className="flex-1">
           <Text className="text-xs font-bold mb-1">Cor</Text>
           <Dropdown
@@ -275,8 +239,6 @@ function OrderItemRow({ item, onChange, removeOrderItem }: OrderItemRowProps) {
             }}
           />
         </View>
-
-        {/* Valor */}
         <View className="flex-1">
           <Text className="text-xs font-bold mb-1">Valor (R$)</Text>
           <TextInput
@@ -285,8 +247,6 @@ function OrderItemRow({ item, onChange, removeOrderItem }: OrderItemRowProps) {
             editable={false}
           />
         </View>
-
-        {/* botão de deletar */}
         <View className="mt-5">
           <TouchableOpacity onPress={() => removeOrderItem(item.id)}>
             <Ionicons name="trash-bin" size={24} color="red" />
@@ -314,9 +274,7 @@ const SectionTitle = ({
 
 const RadioButton = ({ selected }: { selected: boolean }) => (
   <View
-    className={`w-6 h-6 rounded-full border-2 ${
-      selected ? "border-purple-700 bg-purple-700" : "border-gray-400"
-    } items-center justify-center`}
+    className={`w-6 h-6 rounded-full border-2 ${selected ? "border-purple-700 bg-purple-700" : "border-gray-400"} items-center justify-center`}
   >
     {selected && <View className="w-3 h-3 rounded-full bg-white" />}
   </View>
@@ -342,6 +300,12 @@ export default function LaundryScheduleScreen({ route }: any) {
   const [totalPieces, setTotalPieces] = useState(0);
   const [totalValue, setTotalValue] = useState(0);
 
+  // 2. NOVOS ESTADOS PARA O DATETIMEPICKER
+  const [close_at, setClose_at] = useState(
+    new Date(new Date().setDate(new Date().getDate() + 1))
+  ); // Inicia com amanhã
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   const shippingFee = 15.0;
 
   useEffect(() => {
@@ -362,22 +326,31 @@ export default function LaundryScheduleScreen({ route }: any) {
     setTotalValue(finalTotal);
   }, [orderItems, deliveryType]);
 
+  // Função para lidar com a mudança de data
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false); // Esconde o seletor em qualquer ação
+    if (selectedDate) {
+      setClose_at(selectedDate); // Atualiza a data se uma foi selecionada
+    }
+  };
+
   const addOrderItem = () => {
-    const newItem: OrderItem = {
-      id: Date.now(),
-      quantity: "0",
-      clothing: "",
-      washType: "",
-      color: "",
-      value: "00,00",
-    };
-    setOrderItems([...orderItems, newItem]);
+    setOrderItems([
+      ...orderItems,
+      {
+        id: Date.now(),
+        quantity: "0",
+        clothing: "",
+        washType: "",
+        color: "",
+        value: "00,00",
+      },
+    ]);
   };
 
   const removeOrderItem = (id: number | Date) => {
     if (orderItems.length > 1) {
-      let oldOrderItems = orderItems.filter((order) => order.id !== id);
-      setOrderItems(oldOrderItems);
+      setOrderItems(orderItems.filter((order) => order.id !== id));
     }
   };
 
@@ -399,28 +372,27 @@ export default function LaundryScheduleScreen({ route }: any) {
         "https://illuminational-earlene-incoherently.ngrok-free.dev/orders",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            order: {
-              details: order.details,
-              status: order.status,
-              delivery_type: order.delivery_type,
-              latitude: order.latitude,
-              longitude: order.longitude,
-              laundryId: order.laundryId,
-              customerId: order.customerId,
-            },
+            order: order,
             items: [...items],
           }),
         }
       );
 
-      const responseData = await response.json();
-      return responseData;
+      const data = await response.json();
+      console.log(close_at);
+
+      if (!response.ok) {
+        console.error("Erro da API:", data);
+        // Mostra um alerta mais útil para o usuário
+        alert(data.details || "Não foi possível criar o pedido.");
+        return null; // Retorna nulo para indicar falha
+      }
+
+      return data;
     } catch (error) {
-      console.error("Erro ao criar o pedido:", error);
+      console.error("Erro na requisição:", error);
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -443,9 +415,12 @@ export default function LaundryScheduleScreen({ route }: any) {
       const clothingLabel =
         clothingDropdownData.find((c) => c.value === item.clothing)?.label ||
         item.clothing;
+
+      // O cálculo do preço unitário também foi corrigido
+      const quantity = Number(item.quantity);
+      const totalRowValue = parseFloat(item.value.replace(",", "."));
       const unitPriceInCents =
-        (parseFloat(item.value.replace(",", ".")) / Number(item.quantity)) *
-        100;
+        quantity > 0 ? (totalRowValue / quantity) * 100 : 0;
 
       return {
         qntd: Number(item.quantity),
@@ -456,31 +431,35 @@ export default function LaundryScheduleScreen({ route }: any) {
       };
     });
 
+    // CORREÇÃO 2: O objeto `orderToApi` agora é construído corretamente
     const orderToApi: OrderType = {
-      details: `Pedido com ${totalPieces} peças. Valor total: R$ ${totalValue
-        .toFixed(2)
-        .replace(".", ",")}`,
-      status: "pending",
+      details: `Pedido com ${totalPieces} peças. Valor total: R$ ${totalValue.toFixed(2).replace(".", ",")}`,
+      status: "PENDING",
       delivery_type: deliveryType,
+      // Passamos o objeto Date diretamente. JSON.stringify vai convertê-lo para o formato ISO.
+      close_at: close_at,
       latitude: String(location.coords.latitude),
       longitude: String(location.coords.longitude),
       laundryId: String(route.params.id),
       customerId: String(customerData?.id),
+      // O total em centavos agora é calculado corretamente a partir do estado
+      total_inCents: Math.round(totalValue * 100),
     };
 
     const result = await createOrder(orderToApi, itemsToApi);
 
-    if (result) {
-      navigation.navigate("ConcludedOrderScreen", {
-        order: result.order,
-        orderItems: finalOrderItems,
-        totalPieces,
-        totalValue,
-        deliveryType,
-        shippingFee,
-        laundryDetails: route.params,
-      });
-    }
+    // if (result && result.order) {
+    //   navigation.navigate("ConcludedOrderScreen", {
+    //     order: result.order,
+    //     orderItems: finalOrderItems,
+    //     totalPieces,
+    //     totalValue,
+    //     deliveryType,
+    //     shippingFee,
+    //     laundryDetails: route.params,
+    //     close_at: close_at.toISOString(),
+    //   });
+    // }
   };
 
   return (
@@ -493,7 +472,6 @@ export default function LaundryScheduleScreen({ route }: any) {
         <ScrollView showsVerticalScrollIndicator={false}>
           <LaundryInfoCard laundry={route.params} />
 
-          {/* Itens do Pedido */}
           <View className="px-4">
             {orderItems.map((item) => (
               <OrderItemRow
@@ -511,7 +489,6 @@ export default function LaundryScheduleScreen({ route }: any) {
             </TouchableOpacity>
           </View>
 
-          {/* Tipos de Entrega */}
           <View className="my-6">
             <SectionTitle title="Tipos de Entrega" />
             <View className="flex-row justify-between px-4 mt-4 gap-3">
@@ -531,7 +508,39 @@ export default function LaundryScheduleScreen({ route }: any) {
             </View>
           </View>
 
-          {/* Forma de Pagamento */}
+          {/* 3. NOVA SEÇÃO PARA A DATA DE ENTREGA */}
+          <View className="my-6 px-4">
+            <SectionTitle title="Agendar Entrega" />
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              className="bg-white border border-gray-300 rounded-lg p-4 mt-4 flex-row justify-between items-center"
+            >
+              <Ionicons name="calendar-outline" size={24} color="#581C87" />
+              <Text className="text-gray-800 font-bold">
+                {close_at.toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </Text>
+              <Ionicons name="chevron-down" size={20} color="#581C87" />
+            </TouchableOpacity>
+          </View>
+
+          {/* 4. RENDERIZAÇÃO CONDICIONAL DO DATETIMEPICKER */}
+          {showDatePicker && (
+            <DateTimePicker
+              testID="dateTimePicker"
+              value={close_at}
+              mode="date"
+              display="default"
+              onChange={onChangeDate}
+              minimumDate={
+                new Date(new Date().setDate(new Date().getDate() + 1))
+              } // Data mínima é amanhã
+            />
+          )}
+
           <View className="my-6">
             <SectionTitle title="Forma de Pagamento" isPill />
             <View className="px-4 mt-4">
@@ -550,7 +559,6 @@ export default function LaundryScheduleScreen({ route }: any) {
             </View>
           </View>
 
-          {/* Resumo e Botão Final */}
           <View className="bg-white p-4">
             <View className="flex-row justify-between mb-2">
               <Text className="text-gray-600">Total de peças:</Text>

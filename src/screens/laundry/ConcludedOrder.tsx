@@ -20,7 +20,7 @@ import * as Clipboard from "expo-clipboard";
 import { BackArrow, Text } from "@/components";
 import { CustomerContext } from "@/contexts";
 
-// --- DADOS PARA MAPEAMENTO (pode ser importado de um arquivo de constantes) ---
+// --- DADOS E COMPONENTES (sem alterações) ---
 const clothingDropdownData = [
   { label: "Camisa", value: "camisa", price: 30.0 },
   { label: "Calça", value: "calca", price: 25.0 },
@@ -28,7 +28,6 @@ const clothingDropdownData = [
   { label: "Casaco", value: "casaco", price: 40.0 },
 ];
 
-// --- COMPONENTES REUTILIZÁVEIS ---
 type DeliveryOptionProps = {
   title: string;
   cep?: string;
@@ -46,18 +45,12 @@ const DeliveryOptionCard = ({
 }: DeliveryOptionProps) => (
   <TouchableOpacity
     onPress={onPress}
-    className={`flex-1 rounded-lg border p-3 ${
-      isSelected
-        ? "bg-purple-300 border-purple-500"
-        : "bg-white border-gray-300"
-    }`}
+    className={`flex-1 rounded-lg border p-3 ${isSelected ? "bg-purple-300 border-purple-500" : "bg-white border-gray-300"}`}
   >
     <View className="flex-row justify-between items-start">
       <View className="flex-1">
         <Text
-          className={`font-bold ${
-            isSelected ? "text-purple-900" : "text-gray-700"
-          }`}
+          className={`font-bold ${isSelected ? "text-purple-900" : "text-gray-700"}`}
         >
           {title}
         </Text>
@@ -67,9 +60,7 @@ const DeliveryOptionCard = ({
         {address && <Text className="text-xs text-purple-800">{address}</Text>}
       </View>
       <View
-        className={`w-5 h-5 rounded-full border-2 justify-center items-center ${
-          isSelected ? "border-white bg-purple-900" : "border-gray-400"
-        }`}
+        className={`w-5 h-5 rounded-full border-2 justify-center items-center ${isSelected ? "border-white bg-purple-900" : "border-gray-400"}`}
       >
         {isSelected && <View className="w-2 h-2 rounded-full bg-white" />}
       </View>
@@ -82,12 +73,15 @@ export default function OrderCompletedScreen() {
   const { customerData } = useContext(CustomerContext);
   const navigation = useNavigation<NavigationProp<any>>();
   const route = useRoute();
+
+  // 1. RECEBER A DATA DE ENTREGA DOS PARÂMETROS
   const {
     orderItems,
     totalPieces,
     totalValue,
     deliveryType: initialDeliveryType,
     shippingFee,
+    close_at: deliveryDateString, // Recebe a data como string ISO
   } = route.params as any;
 
   const [deliveryType, setDeliveryType] = useState(initialDeliveryType);
@@ -103,16 +97,19 @@ export default function OrderCompletedScreen() {
     minute: "2-digit",
   });
 
+  // 2. FORMATAR A DATA DE ENTREGA PARA EXIBIÇÃO
+  const formattedDeliveryDate = useMemo(() => {
+    if (!deliveryDateString) return "Não agendada";
+    const date = new Date(deliveryDateString);
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
+  }, [deliveryDateString]);
+
   const uniqueWashTypes = [...new Set(orderItems.map((item) => item.washType))];
-
   const toggleModal = () => setIsModalVisible(!isModalVisible);
-
-  const getClothingLabel = (value: string) => {
-    return clothingDropdownData.find((c) => c.value === value)?.label || value;
-  };
-  const getClothingPrice = (value: string) => {
-    return clothingDropdownData.find((c) => c.value === value)?.price || 0;
-  };
+  const getClothingLabel = (value: string) =>
+    clothingDropdownData.find((c) => c.value === value)?.label || value;
+  const getClothingPrice = (value: string) =>
+    clothingDropdownData.find((c) => c.value === value)?.price || 0;
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -180,7 +177,6 @@ export default function OrderCompletedScreen() {
         </View>
       </Modal>
       <SafeAreaView className="flex-1 bg-gray-100">
-        {/* Header */}
         <View className="bg-purple-900 p-5 rounded-b-2xl">
           <BackArrow size={32} />
           <Text className="text-white text-2xl font-bold text-center mt-2">
@@ -189,13 +185,20 @@ export default function OrderCompletedScreen() {
           <Text className="text-gray-300 text-sm text-center">
             Pedido feito: {orderDate} às {orderTime}h
           </Text>
-          <Text className="text-gray-300 text-sm text-center">
+
+          {/* 3. EXIBIR A DATA DE ENTREGA NO CABEÇALHO */}
+          <View className="bg-white/20 rounded-full py-1 px-4 self-center mt-3">
+            <Text className="text-yellow-300 text-sm font-bold text-center">
+              Previsão de entrega: {formattedDeliveryDate}
+            </Text>
+          </View>
+
+          <Text className="text-gray-300 text-sm text-center mt-2">
             Aguardando pagamento: 48h
           </Text>
         </View>
 
         <ScrollView contentContainerStyle={{ padding: 16 }}>
-          {/* Tipo de Lavagem */}
           <View className="flex-row items-center mb-5 flex-wrap">
             <Text className="font-bold text-gray-600 mr-3">
               TIPO DE LAVAGEM:
@@ -210,7 +213,6 @@ export default function OrderCompletedScreen() {
             ))}
           </View>
 
-          {/* Opções de Entrega */}
           <View className="flex-row gap-2 mb-6">
             <DeliveryOptionCard
               title="Entrega a Domicílio"
@@ -227,7 +229,6 @@ export default function OrderCompletedScreen() {
             />
           </View>
 
-          {/* Resumo dos Itens */}
           <View className="bg-white p-4 rounded-lg">
             {orderItems.map((item) => (
               <View
@@ -243,7 +244,6 @@ export default function OrderCompletedScreen() {
                 </Text>
               </View>
             ))}
-
             <View className="border-t border-gray-200 pt-3 mt-2">
               <View className="flex-row justify-between items-center mb-2">
                 <Text className="text-gray-600">Total de peças:</Text>
@@ -262,15 +262,12 @@ export default function OrderCompletedScreen() {
             </View>
           </View>
 
-          {/* Valor Total */}
           <View className="bg-purple-900 rounded-lg p-3 my-4">
             <Text className="text-white font-bold text-lg text-center">
               Valor Total: R$ {totalValue.toFixed(2).replace(".", ",")}
             </Text>
           </View>
         </ScrollView>
-
-        {/* Footer Actions */}
         <View className="flex-row gap-2 p-4 bg-gray-100 items-center ">
           <TouchableOpacity className="bg-gray-200 p-3 rounded-full">
             <Ionicons

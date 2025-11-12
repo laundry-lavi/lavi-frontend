@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ImageBackground,
   ImageSourcePropType,
-  ActivityIndicator, // Importe o ActivityIndicator para o feedback de loading
+  ActivityIndicator,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import PieChart from "react-native-pie-chart";
@@ -19,9 +19,10 @@ import {
   generateChartDataFromFeedbacks,
   getLaundry,
   getFeedbacks,
+  getOrders,
 } from "@/functions/";
-import { Feedback } from "@/types/";
-import FeedbackCard from "@/components/FeedbackCard"; // Importe o novo componente
+import { CompletedOrderType, Feedback } from "@/types/";
+import FeedbackCard from "@/components/FeedbackCard";
 
 const bgImages = [
   require("assets/ordersImage.png"),
@@ -49,17 +50,29 @@ const LegendItem = ({
 
 // --- Componente da Tela Principal ---
 export default function LaundryHomeScreen() {
-  const navigation = useNavigation<NavigationProp<any>>();
+  const navigation = useNavigation<any>();
   const { ownerData } = useContext(OwnerContext);
   const { setLaundryData, laundryData } = useContext(LaundryContext);
 
-  const [allFeedbacks, setAllFeedbacks] = useState<Feedback[]>([]); // Estado para TODOS os feedbacks, sem filtro
+  const [allFeedbacks, setAllFeedbacks] = useState<Feedback[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<number | null>(null);
+  
+  // 1. NOVO ESTADO: Um único objeto para armazenar as listas de pedidos por categoria.
+  const [categorizedOrders, setCategorizedOrders] = useState<{
+    pending: CompletedOrderType[];
+    ongoing: CompletedOrderType[];
+    concluded: CompletedOrderType[];
+  }>({
+    pending: [],
+    ongoing: [],
+    concluded: [],
+  });
 
+  // Efeito para carregar dados da lavanderia e feedbacks iniciais
   useEffect(() => {
     async function loadInitialData() {
       if (!ownerData?.memberId) return;
@@ -70,7 +83,7 @@ export default function LaundryHomeScreen() {
         setLaundryData({ ownerId: ownerData.memberId, laundry: laundryInfo });
 
         const fetchedFeedbacks = await getFeedbacks(laundryInfo.id, 1);
-        setAllFeedbacks(fetchedFeedbacks); // Armazena na lista principal
+        setAllFeedbacks(fetchedFeedbacks);
         setPage(1);
         setHasMore(fetchedFeedbacks.length === 10);
       }
@@ -78,6 +91,45 @@ export default function LaundryHomeScreen() {
     }
     loadInitialData();
   }, [ownerData]);
+
+  // Efeito para carregar e CATEGORIZAR os pedidos
+  useEffect(() => {
+    async function getInitialOrders() {
+      if (!laundryData?.laundry.id) return;
+
+      const initialOrders = await getOrders(laundryData.laundry.id);
+      
+      if (initialOrders && initialOrders.length > 0) {
+        // 2. LÓGICA ATUALIZADA: Agrupa a lista completa de pedidos em categorias.
+        const groupedOrders = initialOrders.reduce(
+          (acc, order) => {
+            // AJUSTE OS VALORES DE STATUS CONFORME O RETORNO DA SUA API
+            const status = order.status;
+            
+            if (status === 'PENDING') {
+              acc.pending.push(order);
+            } else if (status === 'ONGOING') {
+              acc.ongoing.push(order);
+            } else if (status === 'CONCLUDED') {
+              acc.concluded.push(order);
+            }
+            return acc;
+          },
+          // Objeto inicial do acumulador, com as listas vazias
+          { pending: [], ongoing: [], concluded: [] } as {
+            pending: CompletedOrderType[];
+            ongoing: CompletedOrderType[];
+            concluded: CompletedOrderType[];
+          }
+        );
+
+        // Atualiza o estado com o objeto contendo as listas de pedidos
+        setCategorizedOrders(groupedOrders);
+      }
+    }
+
+    getInitialOrders();
+  }, [laundryData?.laundry.id]);
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore || !laundryData?.laundry?.id) return;
@@ -87,7 +139,6 @@ export default function LaundryHomeScreen() {
     const newFeedbacks = await getFeedbacks(laundryData.laundry.id, nextPage);
 
     if (newFeedbacks.length > 0) {
-      // Adiciona os novos feedbacks à lista principal (sem filtro)
       setAllFeedbacks((prev) => [...prev, ...newFeedbacks]);
       setPage(nextPage);
     }
@@ -101,7 +152,6 @@ export default function LaundryHomeScreen() {
     return generateChartDataFromFeedbacks(allFeedbacks);
   }, [allFeedbacks]);
 
-  // --- useMemo PARA O RATING (usa a lista completa) ---
   const rating = useMemo(() => {
     if (allFeedbacks.length === 0) return "0.0";
     const totalStars = allFeedbacks.reduce(
@@ -111,35 +161,37 @@ export default function LaundryHomeScreen() {
     return (totalStars / allFeedbacks.length).toFixed(1);
   }, [allFeedbacks]);
 
-  // --- useMemo PARA FILTRAR OS FEEDBACKS PARA EXIBIÇÃO ---
   const filteredFeedbacks = useMemo(() => {
     if (selectedFilter === null) {
-      return allFeedbacks; // Se o filtro for "Todos", retorna a lista completa
+      return allFeedbacks;
     }
-    // Caso contrário, filtra a lista principal
     return allFeedbacks.filter(
       (feedback) => feedback.feedbackPost.rate === selectedFilter
     );
-  }, [allFeedbacks, selectedFilter]); // Recalcula quando a lista principal ou o filtro mudam
+  }, [allFeedbacks, selectedFilter]);
 
   const OrderCard = ({
     imageUri,
     title,
     route,
+    count,
+    params
   }: {
     imageUri: ImageSourcePropType;
     title: string;
-    route: never;
+    route: string;
+    count: number;
+    params: CompletedOrderType[]
   }) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate(route)}
+      onPress={() => navigation.navigate(route, { orders: params })}
       className="w-[31%] h-36 rounded-lg overflow-hidden justify-end"
     >
       <ImageBackground source={imageUri} resizeMode="cover">
         <View className="bg-black/40 p-2 h-full justify-end">
           <View className="bg-purple-600/60 px-2 py-1 rounded-md flex-col items-center justify-between">
             <Text className="text-white font-bold text-sm">{title}</Text>
-            <Text className="text-white font-bold text-sm">10</Text>
+            <Text className="text-white font-bold text-sm">{count}</Text>
           </View>
         </View>
       </ImageBackground>
@@ -152,7 +204,7 @@ export default function LaundryHomeScreen() {
         {/* Header */}
         <View className="flex-row-reverse p-4 items-center justify-between">
           <NotificationBtn />
-          <TouchableOpacity onPress={() => console.log(laundryData)}>
+          <TouchableOpacity onPress={() => console.log(categorizedOrders)}>
             <View>
               <Text className="text-2xl font-bold text-gray-800">
                 Olá, {laundryData?.laundry?.name || "Lavanderia"}
@@ -170,34 +222,40 @@ export default function LaundryHomeScreen() {
             Gerenciamento de Pedidos
           </Text>
           <View className="flex-row justify-between">
+            {/* 3. ATUALIZAR CONTAGEM: A contagem agora é o comprimento (.length) da lista correspondente */}
             <OrderCard
               title="Pedidos"
               imageUri={bgImages[0]}
               route="OrdersScreen"
-            />
+              count={categorizedOrders.pending.length}
+              params={categorizedOrders.pending}
+              />
             <OrderCard
               title="Em andamento"
               imageUri={bgImages[1]}
               route="OrdersInGoing"
-            />
+              count={categorizedOrders.ongoing.length}
+              params={categorizedOrders.ongoing}
+              />
             <OrderCard
               title="Concluídos"
               imageUri={bgImages[2]}
               route="OrdersConcluded"
+              count={categorizedOrders.concluded.length}
+              params={categorizedOrders.concluded}
             />
           </View>
         </View>
 
-        {/* Status da Qualidade */}
+        {/* Status da Qualidade (código inalterado) */}
         <View className="p-4">
           <Text className="text-lg font-bold text-gray-800 mb-3">
             Status da Qualidade
           </Text>
-
-          {allFeedbacks.length > 0 ? (
-            // Se houver feedbacks, mostra o gráfico e as avaliações
+          {isLoading ? (
+             <ActivityIndicator size="large" color="#8A63D2" className="my-10" />
+           ) : allFeedbacks.length > 0 ? (
             <View className="bg-white p-4 rounded-lg shadow-sm flex-row items-center">
-              {/* Lado Esquerdo: Gráfico e Legenda */}
               <View className="flex-1 items-center">
                 <View className="bg-purple-200 px-2 py-1 rounded-md mb-2">
                   <Text className="text-purple-800 text-xs font-bold">
@@ -214,7 +272,6 @@ export default function LaundryHomeScreen() {
 
               <View className="w-px h-full bg-gray-200 mx-2" />
 
-              {/* Lado Direito: Avaliação */}
               <View className="flex-1 items-center">
                 <View className="bg-purple-200 px-2 py-1 rounded-md mb-2">
                   <Text className="text-purple-800 text-xs font-bold">
@@ -247,7 +304,6 @@ export default function LaundryHomeScreen() {
               </View>
             </View>
           ) : (
-            // Se NÃO houver feedbacks, mostra a mensagem de aviso
             <View className="bg-white p-4 rounded-lg shadow-sm items-center justify-center h-48">
               <Ionicons
                 name="chatbox-ellipses-outline"
@@ -261,7 +317,7 @@ export default function LaundryHomeScreen() {
           )}
         </View>
 
-        {/* --- SEÇÃO DE COMENTÁRIOS RECENTES --- */}
+        {/* Seção de Comentários (código inalterado) */}
         <View className="p-4">
           <Text className="text-lg font-bold text-gray-800 mb-3">
             Comentários Recentes

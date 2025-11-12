@@ -12,13 +12,14 @@ import {
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-import { OwnerContext } from "@/contexts";
+import { OwnerContext, LaundryContext } from "@/contexts";
 import { InfoField, Text } from "@/components";
 
 // --- Componente Principal da Tela ---
 export default function LaundryProfileScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
   const { ownerData } = useContext(OwnerContext);
+  const { laundryData } = useContext(LaundryContext);
   const profileData = {
     name: ownerData?.name,
     email: ownerData?.email,
@@ -106,25 +107,20 @@ export default function LaundryProfileScreen() {
                   </TouchableOpacity>
                 </View>
 
-                <InfoField label="Email" value="lavanderia.lavebem@gmail.com" />
+                <InfoField
+                  label="Email"
+                  value={laundryData?.laundry.email || ""}
+                />
                 <InfoField
                   label="Localização"
-                  value="R. 20 de Setembro, 700-Sala 12-Bela Vista, Teresina-PI..."
+                  value={laundryData?.laundry.address || ""}
                 />
                 <InfoField label="Telefone" value="+55 11 98765-4320" />
 
-                <Text className="text-2xl font-bold text-gray-800 mb-4">
-                  Acesso e Horários
-                </Text>
                 <View className="flex-row justify-between">
                   <InfoField
-                    label="Abre às:"
-                    value="12:00 p.m"
-                    width="w-[48%]"
-                  />
-                  <InfoField
-                    label="Fecha às:"
-                    value="7:00 a.m"
+                    label="Horários:"
+                    value={laundryData?.laundry.opening || ""}
                     width="w-[48%]"
                   />
                 </View>
