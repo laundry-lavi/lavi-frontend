@@ -149,7 +149,7 @@ export default function ClientSignin() {
           memberId: body.customer_id,
           role: "customer",
         });
-        navigation.navigate("ClientLogin");
+        //navigation.navigate("ClientLogin");
         Alert.alert(
           "Sucesso!",
           "Formulário preenchido corretamente, agora faça login com o email e senha cadastrados."

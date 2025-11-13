@@ -169,11 +169,11 @@ function LaundryCard({ item, isSelected }: { item: any; isSelected: boolean }) {
         <View className="w-32 h-auto rounded-lg bg-[#a391c2] p-2 flex justify-center items-center">
           <Ionicons name="location-sharp" size={20} color="white" />
           <Text className="text-white text-[11px] text-center font-bold mt-1">
-            {item.distance ? `${item.distance.toFixed(1)}km` : "Calculando..."}
+            {item.distance ? `${item.distance}km` : "Calculando..."}
           </Text>
           <View className="bg-white/90 rounded-md py-1 px-2 mt-2">
             <Text className="text-indigo-900 text-[11px] font-bold">
-              {item.duration || ""}
+              {item.duration || "menos que 1 "} minuto
             </Text>
           </View>
         </View>

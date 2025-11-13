@@ -6,7 +6,8 @@ import {
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
-  Platform, // Importado para lidar com o comportamento do KeyboardAvoidingView
+  Platform,
+  Alert, // Importado para lidar com o comportamento do KeyboardAvoidingView
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
@@ -301,9 +302,13 @@ export default function LaundryScheduleScreen({ route }: any) {
   const [totalValue, setTotalValue] = useState(0);
 
   // 2. NOVOS ESTADOS PARA O DATETIMEPICKER
-  const [close_at, setClose_at] = useState(
+  const [close_at, setClose_at] = useState<string>(
+    new Date(new Date().setDate(new Date().getDate() + 1)).toISOString()
+  ); // Inicia com amanhã
+  const [close_atDate, setClose_atDate] = useState<Date>(
     new Date(new Date().setDate(new Date().getDate() + 1))
   ); // Inicia com amanhã
+
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const shippingFee = 15.0;
@@ -330,7 +335,8 @@ export default function LaundryScheduleScreen({ route }: any) {
   const onChangeDate = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false); // Esconde o seletor em qualquer ação
     if (selectedDate) {
-      setClose_at(selectedDate); // Atualiza a data se uma foi selecionada
+      setClose_at(selectedDate.toISOString());
+      setClose_atDate(selectedDate);
     }
   };
 
@@ -374,14 +380,28 @@ export default function LaundryScheduleScreen({ route }: any) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            order: order,
+            order: {
+              close_at: order.close_at,
+              details: order.details,
+              status: order.status,
+              delivery_type: order.delivery_type,
+              latitude: order.latitude,
+              longitude: order.longitude,
+              laundryId: order.laundryId,
+              customerId: order.customerId,
+              total_inCents: order.total_inCents,
+            },
             items: [...items],
           }),
         }
       );
 
       const data = await response.json();
-      console.log(close_at);
+      console.log("Data response:");
+      console.log(data);
+      console.log("Horários de fechamento:");
+      console.log(typeof order.close_at);
+      console.log(order.close_at);
 
       if (!response.ok) {
         console.error("Erro da API:", data);
@@ -447,19 +467,26 @@ export default function LaundryScheduleScreen({ route }: any) {
     };
 
     const result = await createOrder(orderToApi, itemsToApi);
+    console.log("Resultado:");
+    console.log(result);
 
-    // if (result && result.order) {
-    //   navigation.navigate("ConcludedOrderScreen", {
-    //     order: result.order,
-    //     orderItems: finalOrderItems,
-    //     totalPieces,
-    //     totalValue,
-    //     deliveryType,
-    //     shippingFee,
-    //     laundryDetails: route.params,
-    //     close_at: close_at.toISOString(),
-    //   });
-    // }
+    if (result) {
+      navigation.navigate("ConcludedOrderScreen", {
+        order: result.order,
+        orderItems: finalOrderItems,
+        totalPieces,
+        totalValue,
+        deliveryType,
+        shippingFee,
+        laundryDetails: route.params,
+        close_at: close_at,
+      });
+    } else {
+      Alert.alert(
+        "Erro",
+        "Ocorreu um erro durante a criação do pedido, tente novamente mais tarde, se persistir, contate um admin"
+      );
+    }
   };
 
   return (
@@ -517,7 +544,7 @@ export default function LaundryScheduleScreen({ route }: any) {
             >
               <Ionicons name="calendar-outline" size={24} color="#581C87" />
               <Text className="text-gray-800 font-bold">
-                {close_at.toLocaleDateString("pt-BR", {
+                {close_atDate.toLocaleDateString("pt-BR", {
                   day: "2-digit",
                   month: "long",
                   year: "numeric",
@@ -531,7 +558,7 @@ export default function LaundryScheduleScreen({ route }: any) {
           {showDatePicker && (
             <DateTimePicker
               testID="dateTimePicker"
-              value={close_at}
+              value={close_atDate}
               mode="date"
               display="default"
               onChange={onChangeDate}

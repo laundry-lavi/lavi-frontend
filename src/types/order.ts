@@ -2,7 +2,7 @@ export type OrderType = {
   id?: string;
   created_at?: string;
   updated_at?: string | null;
-  close_at?: Date | null;
+  close_at?: string | null;
   total_inCents?: number;
   details: string;
   status: "PENDING" | "ONGOING" | "CONCLUDED";

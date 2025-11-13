@@ -51,6 +51,7 @@ const fromOpeningDaysDropdownData = [
   { label: "Sexta-feira", value: "sex", validateValue: 6 },
   { label: "Sábado", value: "sab", validateValue: 7 },
 ];
+
 const tillOpeningDaysDropdownData = [
   { label: "Domingo", value: "dom", validateValue: 1 },
   { label: "Segunda-feira", value: "seg", validateValue: 2 },
@@ -104,12 +105,12 @@ export default function CorpSignin() {
     lat: "-23.629667350574618",
     lng: "-46.78342410447351",
     name: "Mugiwara Lavandeira LTDA",
-    ownerId: ownerData.memberId,
+    ownerId: ownerData?.memberId,
     type: "express",
     profileUrl: null,
     senha: "Mugiwara123",
     opening: "08:00 - 18:00, de Seg à Sáb",
-    email: ownerData.email,
+    email: ownerData?.email,
   };
 
   const [formData, setFormData] = useState<LaundryFormData>({
@@ -269,7 +270,7 @@ export default function CorpSignin() {
     setFormData({
       ...formData,
       name: dados.name,
-      email: dados.email,
+      email: dados.email || "",
       doc: dados.cnpj,
       cep: dados.cep,
       address: dados.address,
@@ -296,7 +297,7 @@ export default function CorpSignin() {
         bankAgency: formData.bankAgency,
         accountNumber: formData.accountNumber,
         accountType: formData.accountType,
-        ownerId: ownerData.memberId,
+        ownerId: ownerData?.memberId,
         type: "lavagem",
         opening: {
           openingHour: formData.opening.openingHour,

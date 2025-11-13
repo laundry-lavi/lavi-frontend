@@ -15,7 +15,7 @@ type LaundryData = {
     bank_agency: string;
     account_number: string;
     account_type: string;
-    id: string;
+    id?: string;
     type: string;
     opening: string;
   };

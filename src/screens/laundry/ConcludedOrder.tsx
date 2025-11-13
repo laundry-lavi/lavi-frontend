@@ -104,7 +104,9 @@ export default function OrderCompletedScreen() {
     return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
   }, [deliveryDateString]);
 
-  const uniqueWashTypes = [...new Set(orderItems.map((item) => item.washType))];
+  const uniqueWashTypes = [
+    ...new Set(orderItems.map((item: any) => item.washType)),
+  ];
   const toggleModal = () => setIsModalVisible(!isModalVisible);
   const getClothingLabel = (value: string) =>
     clothingDropdownData.find((c) => c.value === value)?.label || value;
@@ -165,7 +167,7 @@ export default function OrderCompletedScreen() {
           </Text>
           <TouchableOpacity
             onPress={() => {
-              navigation.navigate("LaundryProfile");
+              navigation.navigate("LaundryProfileScreen");
               copyToClipboard("email.pix@gmail.com");
             }}
             className="bg-[#a276d7] w-[70%] p-3 rounded-md"
