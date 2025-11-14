@@ -6,3 +6,5 @@ export { default as getLaundry } from "./getLaundry";
 export { default as generateChartDataFromFeedbacks } from "./generateChartData";
 export { default as getFeedbacks } from "./getFeedbacks";
 export { default as getOrders } from "./getOrders";
+export { default as getCostumerOrders } from "./getCostumerOrders";
+export { default as getLaundryById } from "./getLaundryById";

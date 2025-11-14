@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect, useMemo } from "react";
 import {
   SafeAreaView,
   View,
@@ -8,19 +8,14 @@ import {
   TextInput,
   ImageBackground,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { Text, InfoField } from "@/components";
-import {
-  UserProfile,
-  Order,
-  PasswordInputProps,
-  PasswordVisibilityState,
-} from "@/types";
+import { Laundry, OrderType } from "@/types";
 import {
   AuthenticationContext,
   OwnerContext,
@@ -28,88 +23,180 @@ import {
   LaundryContext,
 } from "@/contexts";
 import { EmployeeProfile, LaundryProfile } from "@/screens/laundryScreens";
+import { getCostumerOrders } from "@/functions/";
+import { blankPhoto } from "assets/blank-icon";
+import { getLaundryById } from "@/functions/";
 
-const user: UserProfile = {
-  name: "Rafael Teodoro Santos",
-  joinDate: "26/01/2018",
-  avatarUrl: { uri: "https://i.pravatar.cc/150?img=11" }, // Substitua pela imagem real
-  email: "rafa.tete@gmail.com",
-  phone: "+55 11 98765-4900",
-  address: "R. 20 de Setembro, 700-Sala 12-Bela Vista, Teresina-PI...",
+type EnrichedOrder = OrderType & { laundryData?: Laundry };
+
+const formatReadableDate = (isoString: string | null | undefined): string => {
+  // Se a data for nula ou indefinida, retorna um texto padrão.
+  if (!isoString) {
+    return "Data não definida";
+  }
+
+  const date = new Date(isoString);
+
+  // Opções para formatar a data para o padrão brasileiro (dia/mês/ano).
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "long", // 'long' para "Setembro", 'short' para "set.", '2-digit' para "09"
+    year: "numeric",
+  };
+
+  // Retorna a data formatada no idioma português do Brasil.
+  return `Entregar ${date.toLocaleDateString("pt-BR", options)}`;
 };
-
-const orders: Order[] = [
-  {
-    id: "1",
-    laundryName: "Lavanderia Lave-Bem",
-    deliveryDate: "Entregar 17 de Maio",
-    status: "Lavar e passar",
-    totalValue: 179.1,
-  },
-  // Adicione mais pedidos aqui
-];
 
 export default function Profile() {
   const navigation = useNavigation<NavigationProp<any>>();
-  const [activeFilter, setActiveFilter] = useState("Em andamento");
+  const [activeFilter, setActiveFilter] = useState("Pedidos");
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 2. ESTADO CORRIGIDO: A tipagem agora reflete um objeto com arrays de EnrichedOrder.
+  const [categorizedOrders, setCategorizedOrders] = useState<{
+    requested: EnrichedOrder[];
+    inProgress: EnrichedOrder[];
+    completed: EnrichedOrder[];
+  }>({
+    inProgress: [],
+    requested: [],
+    completed: [],
+  });
+
   const { customerData, clearCustomerData } = useContext(CustomerContext);
   const { isLaundry } = useContext(AuthenticationContext);
   const { ownerData, clearOwnerData } = useContext(OwnerContext);
   const { clearLaundryData } = useContext(LaundryContext);
 
-  if (!isLaundry && !customerData) {
-    Alert.alert(
-      "Erro",
-      "Dados do cliente não disponíveis. Você entrou como convidado?",
-      [
-        { text: "Sim", onPress: () => {} },
-        {
-          text: "Não",
-          onPress: () => {
-            clearCustomerData();
-            clearOwnerData();
-            clearLaundryData();
-            navigation.navigate("Welcome");
-            Alert.alert(
-              "Redirecionando",
-              "Você será redirecionado para a tela de boas-vindas."
-            );
-          },
-        },
-      ]
-    );
-  }
+  // 3. LÓGICA DE BUSCA E PROCESSAMENTO CORRIGIDA
+  useEffect(() => {
+    const fetchAndProcessOrders = async () => {
+      if (!customerData?.id) {
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
 
-  if (isLaundry && !ownerData) {
-    Alert.alert(
-      "Erro",
-      "Dados da lavanderia não disponíveis. Você entrou como convidado?",
-      [
-        { text: "Sim", onPress: () => {} },
-        {
-          text: "Não",
-          onPress: () => {
-            clearCustomerData();
-            clearOwnerData();
-            clearLaundryData();
-            navigation.navigate("Welcome");
-            Alert.alert(
-              "Redirecionando",
-              "Você será redirecionado para a tela de boas-vindas."
-            );
-          },
-        },
-      ]
-    );
-  }
+      // Passo 1: Buscar todos os pedidos do cliente.
+      const orders = await getCostumerOrders(customerData.id);
 
-  return isLaundry ? (
-    ownerData?.role === "owner" ? (
+      if (orders && orders.length > 0) {
+        // Passo 2: Para cada pedido, criar uma promessa que busca os dados da lavanderia
+        // e retorna um novo objeto de pedido "enriquecido".
+        const enrichedOrdersPromises = orders.map(async (order) => {
+          const laundryInfo = await getLaundryById(order.laundryId);
+          return {
+            ...order,
+            laundryData: laundryInfo, // Adiciona os dados da lavanderia ao pedido
+          };
+        });
+
+        // Passo 3: Aguardar que todas as buscas de lavanderia terminem.
+        const enrichedOrders = await Promise.all(enrichedOrdersPromises);
+
+        // Passo 4: Agrupar os pedidos já enriquecidos usando um reduce SÍNCRONO.
+        const groupedOrders = enrichedOrders.reduce(
+          (acc, order) => {
+            const status = order.status;
+
+            if (status === "ONGOING") {
+              acc.inProgress.push(order);
+            } else if (status === "PENDING") {
+              acc.requested.push(order);
+            } else if (status === "CONCLUDED") {
+              acc.completed.push(order);
+            }
+            return acc;
+          },
+          { inProgress: [], requested: [], completed: [] } as {
+            inProgress: EnrichedOrder[];
+            requested: EnrichedOrder[];
+            completed: EnrichedOrder[];
+          }
+        );
+
+        setCategorizedOrders(groupedOrders);
+      }
+      setIsLoading(false);
+    };
+
+    fetchAndProcessOrders();
+  }, [customerData?.id]);
+
+  useEffect(() => {
+    if (!isLaundry && !customerData) {
+      Alert.alert(
+        "Erro",
+        "Dados do cliente não disponíveis. Você entrou como convidado?",
+        [
+          { text: "Sim", onPress: () => {} },
+          {
+            text: "Não",
+            onPress: () => {
+              clearCustomerData();
+              clearOwnerData();
+              clearLaundryData();
+              navigation.navigate("Welcome");
+              Alert.alert(
+                "Redirecionando",
+                "Você será redirecionado para a tela de boas-vindas."
+              );
+            },
+          },
+        ]
+      );
+    }
+
+    if (isLaundry && !ownerData) {
+      Alert.alert(
+        "Erro",
+        "Dados da lavanderia não disponíveis. Você entrou como convidado?",
+        [
+          { text: "Sim", onPress: () => {} },
+          {
+            text: "Não",
+            onPress: () => {
+              clearCustomerData();
+              clearOwnerData();
+              clearLaundryData();
+              navigation.navigate("Welcome");
+              Alert.alert(
+                "Redirecionando",
+                "Você será redirecionado para a tela de boas-vindas."
+              );
+            },
+          },
+        ]
+      );
+    }
+  }, [isLaundry, customerData, ownerData]);
+
+  // 3. FILTRAGEM: Seleciona a lista correta com base no filtro ativo.
+  // useMemo otimiza a performance, evitando recalcular a cada renderização.
+  const filteredOrders = useMemo(() => {
+    if (activeFilter === "Em andamento") {
+      return categorizedOrders.inProgress;
+    }
+    // "Pedidos" aqui corresponde aos pedidos com status "PENDING"
+    if (activeFilter === "Pedidos") {
+      return categorizedOrders.requested;
+    }
+    if (activeFilter === "Concluídos") {
+      return categorizedOrders.completed;
+    }
+    return []; // Retorna um array vazio como padrão
+  }, [activeFilter, categorizedOrders]);
+
+  if (isLaundry) {
+    return ownerData?.role === "owner" ? (
       <LaundryProfile />
     ) : (
       <EmployeeProfile />
-    )
-  ) : (
+    );
+  }
+
+  return (
     <SafeAreaView>
       <ImageBackground
         className="w-full h-full p-3 pt-20"
@@ -118,11 +205,12 @@ export default function Profile() {
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="items-center">
             <Image
-              source={user.avatarUrl}
+              source={{
+                uri: customerData?.profileUrl || blankPhoto,
+              }}
               className="w-28 h-28 rounded-full border-4 border-white z-10"
             />
             <View className="w-full bg-white border border-gray-200 rounded-2xl p-5 -mt-12 pt-12 z-0 ">
-              {/* Ícone de Configurações */}
               <TouchableOpacity
                 onPress={() => navigation.navigate("SettingsScreen")}
                 className="absolute top-4 right-4"
@@ -132,7 +220,6 @@ export default function Profile() {
                 </View>
               </TouchableOpacity>
 
-              {/* Nome e Data de Entrada */}
               <View className="items-center">
                 <View className="flex-row items-center">
                   <Text className="text-xl font-bold text-gray-800 mr-2">
@@ -141,49 +228,32 @@ export default function Profile() {
                 </View>
               </View>
 
-              {/* Formulário */}
               <View className="mt-4 mb-4">
-                {/* <TextInput
-                  className="text-[#d9d9d9] text-lg p-4 pl-2 mb-2 border rounded-xl border-[#d9d9d9]"
-                  placeholder="Email"
-                  defaultValue="arthurrollemberg"
-                  placeholderTextColor="#d9d9d9"
-                  editable={false}
-                /> */}
                 <InfoField label="Email" value={customerData?.email || ""} />
-
-                {/* <InfoField label="Telefone" value={customerData?.phone || ""} /> */}
-
                 <InfoField
                   label="Endereço"
                   value={customerData?.address || ""}
                 />
-
-                <InfoField
-                  label="Senha"
-                  value={customerData?.password || ""}
-                  isPassword
-                />
+                <InfoField label="Senha" value={"************"} isPassword />
               </View>
 
-              {/* SEGUNDA SEÇÃO */}
+              {/* SEÇÃO MEUS PEDIDOS */}
               <View className="bg-[#210030] rounded-lg p-3">
                 <Text className="text-white font-bold text-base">
                   Meus Pedidos
                 </Text>
               </View>
               <View className="bg-[#fbf5ff] pt-4 px-2 mx-2 mt-0">
-                {/* Filtros de Pedidos */}
                 <View className="flex-row justify-center space-x-3 mb-4">
-                  <FilterChip
-                    text="Em andamento"
-                    isSelected={activeFilter === "Em andamento"}
-                    onPress={() => setActiveFilter("Em andamento")}
-                  />
                   <FilterChip
                     text="Pedidos"
                     isSelected={activeFilter === "Pedidos"}
                     onPress={() => setActiveFilter("Pedidos")}
+                  />
+                  <FilterChip
+                    text="Em andamento"
+                    isSelected={activeFilter === "Em andamento"}
+                    onPress={() => setActiveFilter("Em andamento")}
                   />
                   <FilterChip
                     text="Concluídos"
@@ -192,51 +262,75 @@ export default function Profile() {
                   />
                 </View>
 
-                {/* Cartão de Pedido */}
-                {orders.map((order) => (
-                  <View
-                    key={order.id}
-                    className="bg-white border border-gray-200 rounded-lg p-4"
-                  >
-                    <View className="flex-row justify-between items-start">
-                      <Text className="text-base font-bold text-gray-800">
-                        {order.laundryName}
-                      </Text>
-                      <Text className="text-sm text-gray-600">
-                        {order.deliveryDate}
-                      </Text>
-                    </View>
-                    <View className="mt-4">
-                      <View className="bg-gray-200 self-start py-1 px-2 rounded">
-                        <Text className="text-xs text-gray-700 font-semibold">
-                          {order.status}
+                {isLoading ? (
+                  <ActivityIndicator
+                    size="large"
+                    color="#4B0082"
+                    className="my-8"
+                  />
+                ) : filteredOrders.length > 0 ? (
+                  filteredOrders.map((order) => (
+                    <View
+                      key={order.id}
+                      className="bg-white border border-gray-200 rounded-lg p-4 mb-3"
+                    >
+                      <View className="flex-row justify-between items-start">
+                        {/* 4. RENDERIZAÇÃO SEGURA: Usa optional chaining para evitar erros
+                            caso os dados da lavanderia não sejam encontrados. */}
+                        <Text className="text-base font-bold text-gray-800">
+                          {order.laundryData?.name ||
+                            "Lavanderia não encontrada"}
+                        </Text>
+                        <Text className="w-[55%] text-sm text-gray-600">
+                          {formatReadableDate(order.close_at)}
                         </Text>
                       </View>
-                    </View>
-                    <View className="flex-row justify-between items-center mt-4">
-                      <Text className="text-sm text-gray-600">
-                        Valor Total:{" "}
-                        <Text className="font-bold">
-                          R$ {order.totalValue.toFixed(2).replace(".", ",")}
-                        </Text>
-                      </Text>
-                      <View className="flex-row items-center space-x-3">
-                        <TouchableOpacity>
-                          <Ionicons
-                            name="chatbubble-ellipses-outline"
-                            size={24}
-                            color="#4B5563"
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity className="bg-purple-900 py-2 px-4 rounded-lg">
-                          <Text className="text-white font-bold text-sm">
-                            Ver Detalhes
+                      <View className="mt-4">
+                        <View className="bg-gray-200 self-start py-1 px-2 rounded">
+                          <Text className="text-xs text-gray-700 font-semibold">
+                            {order.status}
                           </Text>
-                        </TouchableOpacity>
+                        </View>
+                      </View>
+                      <View className="flex-row justify-between items-center mt-4">
+                        <Text className="text-sm text-gray-600">
+                          Valor Total:{" "}
+                          <Text className="font-bold">
+                            R${" "}
+                            {((order?.total_inCents ?? 0) / 100)
+                              .toFixed(2)
+                              .replace(".", ",")}
+                          </Text>
+                        </Text>
+                        <View className="flex-row items-center space-x-3">
+                          <TouchableOpacity>
+                            <Ionicons
+                              name="chatbubble-ellipses-outline"
+                              size={24}
+                              color="#4B5563"
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity className="bg-purple-900 py-2 px-4 rounded-lg">
+                            <Text className="text-white font-bold text-sm">
+                              Ver Detalhes
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
                       </View>
                     </View>
+                  ))
+                ) : (
+                  <View className="items-center justify-center p-8 bg-white rounded-lg">
+                    <Ionicons
+                      name="file-tray-outline"
+                      size={32}
+                      color="#9CA3AF"
+                    />
+                    <Text className="text-gray-500 mt-2 text-center">
+                      Nenhum pedido encontrado nesta categoria.
+                    </Text>
                   </View>
-                ))}
+                )}
               </View>
             </View>
           </View>
@@ -246,49 +340,17 @@ export default function Profile() {
   );
 }
 
-// --- COMPONENTES REUTILIZÁVEIS ---
+// --- COMPONENTES REUTILIZÁVEIS (sem alterações) ---
 
-interface InputFieldProps {
-  label: string;
-  value: string;
-  placeholder?: string;
-  secureTextEntry?: boolean;
-  iconName?: string;
-  multiline?: boolean;
-}
-
-const InputField = ({
-  label,
-  value,
-  placeholder,
-  secureTextEntry,
-  iconName,
-  multiline,
-}: InputFieldProps) => (
-  <View className="mb-4">
-    <Text className="text-sm font-bold text-gray-700 mb-1">{label}</Text>
-    <View className="flex-row items-center border border-gray-300 rounded-lg p-3 bg-white">
-      <TextInput
-        className="flex-1 text-gray-800"
-        value={value}
-        placeholder={placeholder}
-        secureTextEntry={secureTextEntry}
-        multiline={multiline}
-      />
-      {iconName && (
-        <Ionicons name={iconName as any} size={20} color="#9CA3AF" />
-      )}
-    </View>
-  </View>
-);
-
-interface FilterChipProps {
+const FilterChip = ({
+  text,
+  isSelected,
+  onPress,
+}: {
   text: string;
   isSelected: boolean;
   onPress: () => void;
-}
-
-const FilterChip = ({ text, isSelected, onPress }: FilterChipProps) => (
+}) => (
   <TouchableOpacity
     onPress={onPress}
     className={`py-2 px-4 ml-1 rounded-lg border ${
@@ -304,133 +366,3 @@ const FilterChip = ({ text, isSelected, onPress }: FilterChipProps) => (
     </Text>
   </TouchableOpacity>
 );
-
-const ProfileScreen = () => {
-  const [activeFilter, setActiveFilter] = useState("Em andamento");
-
-  return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Espaço para o background de bolhas */}
-        <View className="h-24 bg-purple-50" />
-
-        <View className="bg-white p-4 items-center">
-          {/* O container do cartão precisa de um z-index menor para o avatar sobrepor */}
-          <View className="w-full bg-white border border-gray-200 rounded-2xl p-5 pt-16 -mt-16 z-0">
-            {/* Ícone de Configurações */}
-            <TouchableOpacity className="absolute top-4 right-4">
-              <View className="w-10 h-10 rounded-full border border-gray-300 justify-center items-center">
-                <Ionicons name="settings-outline" size={24} color="#4B5563" />
-              </View>
-            </TouchableOpacity>
-
-            {/* Nome e Data de Entrada */}
-            <View className="items-center">
-              <View className="flex-row items-center">
-                <Text className="text-xl font-bold text-gray-800 mr-2">
-                  {user.name}
-                </Text>
-                <Ionicons name="pencil-outline" size={20} color="#4B5563" />
-              </View>
-              <Text className="text-sm text-gray-500 mt-1">
-                Entrou em {user.joinDate}
-              </Text>
-            </View>
-
-            {/* Formulário */}
-            <View className="mt-8">
-              <InputField label="Email" value={user.email} />
-              <InputField label="Telefone" value={user.phone} />
-              <InputField label="Endereço" value={user.address} multiline />
-              <InputField
-                label="Senha de Acesso"
-                value="************"
-                secureTextEntry
-                iconName="eye-outline"
-              />
-            </View>
-          </View>
-
-          {/* Avatar - Posicionado absolutamente para sobrepor o cartão */}
-          <Image
-            source={user.avatarUrl}
-            className="w-28 h-28 rounded-full border-4 border-white absolute top-8 z-10"
-          />
-        </View>
-
-        {/* Seção Meus Pedidos */}
-        <View className="px-4 pb-8 -mt-2">
-          {/* Header */}
-          <View className="bg-purple-900 rounded-lg p-3 mb-4">
-            <Text className="text-white font-bold text-base">Meus Pedidos</Text>
-          </View>
-
-          {/* Filtros de Pedidos */}
-          <View className="flex-row justify-center space-x-3 mb-4">
-            <FilterChip
-              text="Em andamento"
-              isSelected={activeFilter === "Em andamento"}
-              onPress={() => setActiveFilter("Em andamento")}
-            />
-            <FilterChip
-              text="Pedidos"
-              isSelected={activeFilter === "Pedidos"}
-              onPress={() => setActiveFilter("Pedidos")}
-            />
-            <FilterChip
-              text="Concluídos"
-              isSelected={activeFilter === "Concluídos"}
-              onPress={() => setActiveFilter("Concluídos")}
-            />
-          </View>
-
-          {/* Cartão de Pedido */}
-          {orders.map((order) => (
-            <View
-              key={order.id}
-              className="bg-white border border-gray-200 rounded-lg p-4"
-            >
-              <View className="flex-row justify-between items-start">
-                <Text className="text-base font-bold text-gray-800">
-                  {order.laundryName}
-                </Text>
-                <Text className="text-sm text-gray-600">
-                  {order.deliveryDate}
-                </Text>
-              </View>
-              <View className="mt-4">
-                <View className="bg-gray-200 self-start py-1 px-2 rounded">
-                  <Text className="text-xs text-gray-700 font-semibold">
-                    {order.status}
-                  </Text>
-                </View>
-              </View>
-              <View className="flex-row justify-between items-center mt-4">
-                <Text className="text-sm text-gray-600">
-                  Valor Total:{" "}
-                  <Text className="font-bold">
-                    R$ {order.totalValue.toFixed(2).replace(".", ",")}
-                  </Text>
-                </Text>
-                <View className="flex-row items-center space-x-3">
-                  <TouchableOpacity>
-                    <Ionicons
-                      name="chatbubble-ellipses-outline"
-                      size={24}
-                      color="#4B5563"
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity className="bg-purple-900 py-2 px-4 rounded-lg">
-                    <Text className="text-white font-bold text-sm">
-                      Ver Detalhes
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
