@@ -65,7 +65,7 @@ export default function Profile() {
   });
 
   const { customerData, clearCustomerData } = useContext(CustomerContext);
-  const { isLaundry } = useContext(AuthenticationContext);
+  const { isLaundry, isGuest } = useContext(AuthenticationContext);
   const { ownerData, clearOwnerData } = useContext(OwnerContext);
   const { clearLaundryData } = useContext(LaundryContext);
 
@@ -189,7 +189,7 @@ export default function Profile() {
   }, [activeFilter, categorizedOrders]);
 
   if (isLaundry) {
-    return ownerData?.role === "owner" ? (
+    return ownerData?.role === "owner" || isGuest ? (
       <LaundryProfile />
     ) : (
       <EmployeeProfile />
@@ -234,7 +234,11 @@ export default function Profile() {
                   label="Endereço"
                   value={customerData?.address || ""}
                 />
-                <InfoField label="Senha" value={"************"} isPassword />
+                <InfoField
+                  label="Senha"
+                  value={isGuest ? "" : "************"}
+                  isPassword
+                />
               </View>
 
               {/* SEÇÃO MEUS PEDIDOS */}

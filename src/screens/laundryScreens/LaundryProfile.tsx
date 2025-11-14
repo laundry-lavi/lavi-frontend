@@ -12,7 +12,11 @@ import {
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-import { OwnerContext, LaundryContext } from "@/contexts";
+import {
+  OwnerContext,
+  LaundryContext,
+  AuthenticationContext,
+} from "@/contexts";
 import { InfoField, Text } from "@/components";
 
 // --- Componente Principal da Tela ---
@@ -20,6 +24,7 @@ export default function LaundryProfileScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
   const { ownerData } = useContext(OwnerContext);
   const { laundryData } = useContext(LaundryContext);
+  const { isGuest } = useContext(AuthenticationContext);
   const profileData = {
     name: ownerData?.name,
     email: ownerData?.email,
@@ -115,7 +120,10 @@ export default function LaundryProfileScreen() {
                   label="Localização"
                   value={laundryData?.laundry.address || ""}
                 />
-                <InfoField label="Telefone" value="+55 11 98765-4320" />
+                <InfoField
+                  label="Telefone"
+                  value={isGuest ? "" : "+55 11 98765-4320"}
+                />
 
                 <View className="flex-row justify-between">
                   <InfoField

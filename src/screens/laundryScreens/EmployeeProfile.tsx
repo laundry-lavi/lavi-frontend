@@ -50,6 +50,7 @@ const InfoField = ({
 // --- Componente Principal da Tela ---
 export default function EmployeeProfileScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
+  const { ownerData } = useContext(OwnerContext);
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100">

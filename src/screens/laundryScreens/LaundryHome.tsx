@@ -14,7 +14,11 @@ import PieChart from "react-native-pie-chart";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { NotificationBtn } from "@/components";
-import { OwnerContext, LaundryContext } from "@/contexts";
+import {
+  OwnerContext,
+  LaundryContext,
+  AuthenticationContext,
+} from "@/contexts";
 import {
   generateChartDataFromFeedbacks,
   getLaundry,
@@ -53,6 +57,7 @@ export default function LaundryHomeScreen() {
   const navigation = useNavigation<any>();
   const { ownerData } = useContext(OwnerContext);
   const { setLaundryData, laundryData } = useContext(LaundryContext);
+  const { isGuest } = useContext(AuthenticationContext);
 
   const [allFeedbacks, setAllFeedbacks] = useState<Feedback[]>([]);
   const [page, setPage] = useState(1);
@@ -60,7 +65,7 @@ export default function LaundryHomeScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<number | null>(null);
-  
+
   // 1. NOVO ESTADO: Um único objeto para armazenar as listas de pedidos por categoria.
   const [categorizedOrders, setCategorizedOrders] = useState<{
     pending: CompletedOrderType[];
@@ -75,7 +80,7 @@ export default function LaundryHomeScreen() {
   // Efeito para carregar dados da lavanderia e feedbacks iniciais
   useEffect(() => {
     async function loadInitialData() {
-      if (!ownerData?.memberId) return;
+      if (!ownerData?.memberId || isGuest) return;
       setIsLoading(true);
 
       const laundryInfo = await getLaundry(ownerData.memberId);
@@ -95,22 +100,22 @@ export default function LaundryHomeScreen() {
   // Efeito para carregar e CATEGORIZAR os pedidos
   useEffect(() => {
     async function getInitialOrders() {
-      if (!laundryData?.laundry.id) return;
+      if (!laundryData?.laundry.id || isGuest) return;
 
       const initialOrders = await getOrders(laundryData.laundry.id);
-      
+
       if (initialOrders && initialOrders.length > 0) {
         // 2. LÓGICA ATUALIZADA: Agrupa a lista completa de pedidos em categorias.
         const groupedOrders = initialOrders.reduce(
           (acc, order) => {
             // AJUSTE OS VALORES DE STATUS CONFORME O RETORNO DA SUA API
             const status = order.status;
-            
-            if (status === 'PENDING') {
+
+            if (status === "PENDING") {
               acc.pending.push(order);
-            } else if (status === 'ONGOING') {
+            } else if (status === "ONGOING") {
               acc.ongoing.push(order);
-            } else if (status === 'CONCLUDED') {
+            } else if (status === "CONCLUDED") {
               acc.concluded.push(order);
             }
             return acc;
@@ -175,13 +180,13 @@ export default function LaundryHomeScreen() {
     title,
     route,
     count,
-    params
+    params,
   }: {
     imageUri: ImageSourcePropType;
     title: string;
     route: string;
     count: number;
-    params: CompletedOrderType[]
+    params: CompletedOrderType[];
   }) => (
     <TouchableOpacity
       onPress={() => navigation.navigate(route, { orders: params })}
@@ -229,14 +234,14 @@ export default function LaundryHomeScreen() {
               route="OrdersScreen"
               count={categorizedOrders.pending.length}
               params={categorizedOrders.pending}
-              />
+            />
             <OrderCard
               title="Em andamento"
               imageUri={bgImages[1]}
               route="OrdersInGoing"
               count={categorizedOrders.ongoing.length}
               params={categorizedOrders.ongoing}
-              />
+            />
             <OrderCard
               title="Concluídos"
               imageUri={bgImages[2]}
@@ -252,9 +257,9 @@ export default function LaundryHomeScreen() {
           <Text className="text-lg font-bold text-gray-800 mb-3">
             Status da Qualidade
           </Text>
-          {isLoading ? (
-             <ActivityIndicator size="large" color="#8A63D2" className="my-10" />
-           ) : allFeedbacks.length > 0 ? (
+          {isLoading && !isGuest ? (
+            <ActivityIndicator size="large" color="#8A63D2" className="my-10" />
+          ) : allFeedbacks.length > 0 ? (
             <View className="bg-white p-4 rounded-lg shadow-sm flex-row items-center">
               <View className="flex-1 items-center">
                 <View className="bg-purple-200 px-2 py-1 rounded-md mb-2">
@@ -360,7 +365,7 @@ export default function LaundryHomeScreen() {
             </ScrollView>
           </View>
 
-          {isLoading ? (
+          {isLoading && !isGuest ? (
             <ActivityIndicator size="large" color="#8A63D2" className="my-10" />
           ) : filteredFeedbacks.length > 0 ? (
             <>

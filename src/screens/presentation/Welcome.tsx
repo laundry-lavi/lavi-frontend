@@ -4,16 +4,28 @@ import { NavigationProp, useNavigation } from "@react-navigation/native";
 import * as SplashScreen from "expo-splash-screen";
 
 import { Text } from "@/components";
-import { AuthenticationContext, LocationContext } from "@/contexts/";
+import {
+  AuthenticationContext,
+  LocationContext,
+  LaundryContext,
+  CustomerContext,
+  OwnerContext,
+} from "@/contexts/";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function Welcome() {
   const navigation = useNavigation<NavigationProp<any>>();
-  const { setIsLaundryTrue, setIsLaundryFalse } = useContext(
-    AuthenticationContext
-  );
+  const {
+    setIsLaundryTrue,
+    setIsLaundryFalse,
+    setIsGuestTrue,
+    setIsGuestFalse,
+  } = useContext(AuthenticationContext);
   const { location, getCurrentLocation } = useContext(LocationContext);
+  const { clearLaundryData } = useContext(LaundryContext);
+  const { clearCustomerData } = useContext(CustomerContext);
+  const { clearOwnerData } = useContext(OwnerContext);
 
   useEffect(() => {
     getCurrentLocation();
@@ -45,6 +57,7 @@ export default function Welcome() {
             className="w-[80%] py-3 items-center bg-[#822083] rounded-lg"
             onPress={() => {
               setIsLaundryTrue();
+              setIsGuestFalse();
               navigation.navigate("CorpWelcome");
             }}
           >
@@ -56,6 +69,7 @@ export default function Welcome() {
             className="w-[80%] py-3 items-center bg-[#370e38] rounded-lg"
             onPress={() => {
               setIsLaundryFalse();
+              setIsGuestFalse();
               navigation.navigate("ClientWelcome");
             }}
           >
@@ -67,6 +81,8 @@ export default function Welcome() {
             className="w-[80%] py-3 items-center bg-[#370e38] rounded-lg"
             onPress={() => {
               setIsLaundryFalse();
+              clearCustomerData();
+              setIsGuestTrue();
               navigation.navigate("InitialRoute");
             }}
           >
@@ -78,6 +94,9 @@ export default function Welcome() {
             className="w-[80%] py-3 items-center bg-[#370e38] rounded-lg"
             onPress={() => {
               setIsLaundryTrue();
+              clearLaundryData();
+              clearOwnerData();
+              setIsGuestTrue();
               navigation.navigate("InitialRoute");
             }}
           >

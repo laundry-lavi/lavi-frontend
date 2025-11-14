@@ -4,6 +4,9 @@ export const AuthenticationContext = createContext({
   isLaundry: false,
   setIsLaundryTrue: () => {},
   setIsLaundryFalse: () => {},
+  isGuest: false,
+  setIsGuestTrue: () => {},
+  setIsGuestFalse: () => {},
 });
 
 export const AuthenticationProvider = ({
@@ -12,6 +15,7 @@ export const AuthenticationProvider = ({
   children: React.ReactNode;
 }) => {
   const [isLaundry, setIsLaundry] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   const setIsLaundryTrue = () => {
     setIsLaundry(true);
@@ -19,6 +23,14 @@ export const AuthenticationProvider = ({
 
   const setIsLaundryFalse = () => {
     setIsLaundry(false);
+  };
+
+  const setIsGuestTrue = () => {
+    setIsGuest(true);
+  };
+
+  const setIsGuestFalse = () => {
+    setIsGuest(false);
   };
 
   const authenticateMember = (email: string, password: string): boolean => {
@@ -37,7 +49,6 @@ export const AuthenticationProvider = ({
     )
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         return true;
       })
       .catch((error) => {
@@ -51,6 +62,9 @@ export const AuthenticationProvider = ({
     isLaundry,
     setIsLaundryTrue,
     setIsLaundryFalse,
+    isGuest,
+    setIsGuestTrue,
+    setIsGuestFalse,
     authenticateMember,
   };
 
