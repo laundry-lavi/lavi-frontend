@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -8,78 +8,82 @@ import {
   StatusBar,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
-
 import { BackArrow, NotificationBtn } from "@/components";
+import {
+  useRoute,
+  RouteProp,
+  useNavigation,
+  NavigationProp,
+} from "@react-navigation/native";
+import { CompletedOrderType } from "@/types"; // 1. Importar o tipo
+
+// --- Interface para os parâmetros da rota ---
+type ScreenRouteProp = RouteProp<
+  { params: { orders: CompletedOrderType[] } },
+  "params"
+>;
 
 interface CardProps {
-  customerName: string;
-  timestamp: string;
-  shippingMethod: string;
-  totalValue: string;
-  paymentStatus: "Aguardando Pagamento" | "Pago";
-  showDeleteIcon?: boolean;
+  order: CompletedOrderType;
 }
 
-const CompletedOrderCard = ({
-  customerName,
-  timestamp,
-  shippingMethod,
-  totalValue,
-  paymentStatus,
-  showDeleteIcon = false,
-}: CardProps) => (
-  <View className="w-[55vw] bg-white border border-gray-100 rounded-lg p-3 mb-4 shadow-sm">
-    {/* Topo: Nome e Timestamp */}
-    <View className="flex-row justify-between items-start mb-2">
-      <Text className="text-sm font-bold text-gray-800 w-[70%]">
-        {customerName.length > 21
-          ? customerName.slice(0, 21) + "..."
-          : customerName}
-      </Text>
-      <Text className="text-xs text-gray-400">{timestamp}</Text>
-    </View>
+const CompletedOrderCard = ({ order }: CardProps) => {
+  const navigation = useNavigation<NavigationProp<any>>();
 
-    {/* Bloco de Informações */}
-    <View className="bg-purple-100 p-2 rounded-md my-2">
-      <Text className="text-xs text-gray-600">
-        Formato de envio: {shippingMethod}
-      </Text>
-      <Text className="text-sm font-bold text-gray-800">
-        Valor Total: R$ {totalValue}
-      </Text>
-    </View>
+  // Formata os dados para exibição
+  const timestamp = new Date(order.created_at || 0).toLocaleTimeString(
+    "pt-BR",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+    }
+  );
+  const shippingMethod =
+    order.delivery_type === "delivery"
+      ? "Entrega a domicílio"
+      : "Buscar no local";
+  const totalValue = ((order.total_inCents || 0) / 100)
+    .toFixed(2)
+    .replace(".", ",");
+  // O status de pagamento deve vir da API, aqui usamos um placeholder
+  const paymentStatus = "Pago";
 
-    {/* Ações */}
-    <View className="flex-row justify-end items-center gap-3 border-t border-gray-100 pt-2 mt-2 space-x-2">
-      {showDeleteIcon && (
-        <TouchableOpacity>
-          <Ionicons name="trash-outline" size={20} color="#4b5563" />
-        </TouchableOpacity>
-      )}
-      <TouchableOpacity>
-        {/* Usando ícones diferentes com base no status para replicar a imagem */}
-        {paymentStatus === "Aguardando Pagamento" ? (
-          <Ionicons
-            name="chatbubble-ellipses-outline"
-            size={20}
-            color="#4b5563"
-          />
-        ) : (
-          <Ionicons name="receipt-outline" size={20} color="#4b5563" />
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity className="bg-[#2c003d] px-2 py-2 rounded-md flex-1 items-center">
-        <Text className="text-white text-[10px] font-bold">
-          {paymentStatus}
+  return (
+    <TouchableOpacity
+      onPress={() => navigation.navigate("OrderDetails", { order: order })}
+      className="w-[65vw] bg-white border border-gray-100 rounded-lg p-3 mb-4 shadow-sm"
+    >
+      <View className="flex-row justify-between items-start mb-2">
+        <Text className="text-sm font-bold text-gray-800 w-[70%]">
+          Cliente ID: {order.customerId.substring(0, 8)}...
         </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-);
+        <Text className="text-xs text-gray-400">{timestamp}</Text>
+      </View>
 
-// --- Componente para a Seção de Pedidos ---
+      <View className="bg-purple-100 p-2 rounded-md my-2">
+        <Text className="text-xs text-gray-600">
+          Formato de envio: {shippingMethod}
+        </Text>
+        <Text className="text-sm font-bold text-gray-800">
+          Valor Total: R$ {totalValue}
+        </Text>
+      </View>
+
+      <View className="flex-row justify-end items-center gap-3 border-t border-gray-100 pt-2 mt-2 space-x-2">
+        <TouchableOpacity>
+          <Ionicons name="receipt-outline" size={20} color="#4b5563" />
+        </TouchableOpacity>
+
+        <View className="bg-[#2c003d] px-2 py-2 rounded-md flex-1 items-center">
+          <Text className="text-white text-[10px] font-bold">
+            {paymentStatus}
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
 const OrderSection = ({
   title,
   children,
@@ -104,13 +108,56 @@ const OrderSection = ({
   </View>
 );
 
-// --- Componente Principal da Tela ---
 export default function CompletedOrdersScreen() {
+  const route = useRoute<ScreenRouteProp>();
+  // 2. Pega os pedidos da rota
+  const orders = route.params?.orders || [];
+
+  // 3. Reutiliza a mesma lógica de categorização por data
+  const categorizedOrders = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + 7);
+
+    const todayOrders: CompletedOrderType[] = [];
+    const weekOrders: CompletedOrderType[] = [];
+    const pastOrders: CompletedOrderType[] = [];
+
+    orders.forEach((order) => {
+      if (!order.close_at) return;
+      const orderDate = new Date(order.close_at);
+      orderDate.setHours(0, 0, 0, 0);
+
+      if (orderDate.getTime() === today.getTime()) {
+        todayOrders.push(order);
+      } else if (orderDate < today && orderDate > endOfWeek) {
+        weekOrders.push(order);
+      } else {
+        pastOrders.push(order);
+      }
+    });
+
+    return { todayOrders, weekOrders, pastOrders };
+  }, [orders]);
+
+  // 4. Função auxiliar para renderizar a lista ou a mensagem de vazio
+  const renderOrderList = (
+    orderList: CompletedOrderType[],
+    emptyMessage: string
+  ) => {
+    if (orderList.length === 0) {
+      return <Text className="text-gray-500 ml-4">{emptyMessage}</Text>;
+    }
+    return orderList.map((order) => (
+      <CompletedOrderCard key={order.id} order={order} />
+    ));
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
       <BackArrow size={32} />
       <View className="bg-[#2c003d] p-4 pt-6 pl-32 flex-row items-center justify-between">
         <View className="items-center">
@@ -118,67 +165,30 @@ export default function CompletedOrdersScreen() {
             Pedidos Concluídos
           </Text>
         </View>
-
         <NotificationBtn color="white" />
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {/* Seção Concluídos Hoje */}
+        {/* 5. Renderização dinâmica das seções */}
         <OrderSection title="Concluídos Hoje">
-          <CompletedOrderCard
-            customerName="Adriana Santiata Barreto"
-            timestamp="às 10h-50m"
-            shippingMethod="Entrega a domicílio"
-            totalValue="20,90"
-            paymentStatus="Aguardando Pagamento"
-          />
-          <CompletedOrderCard
-            customerName="Charles White Pen"
-            timestamp="às 12h-30m"
-            shippingMethod="Entrega a domicílio"
-            totalValue="20,90"
-            paymentStatus="Pago" // Exemplo de status diferente
-          />
+          {renderOrderList(
+            categorizedOrders.todayOrders,
+            "Nenhum pedido concluído hoje."
+          )}
         </OrderSection>
 
-        {/* Seção Concluídos essa Semana */}
         <OrderSection title="Concluídos essa Semana">
-          <CompletedOrderCard
-            customerName="Emma Frost Stark"
-            timestamp="Ontem"
-            shippingMethod="Entrega a domicílio"
-            totalValue="211,90"
-            paymentStatus="Aguardando Pagamento"
-            showDeleteIcon={true}
-          />
-          <CompletedOrderCard
-            customerName="Emily Silveiro Pita"
-            timestamp="Ontem"
-            shippingMethod="Entrega a domicílio"
-            totalValue="12,90"
-            paymentStatus="Pago"
-            showDeleteIcon={true}
-          />
+          {renderOrderList(
+            categorizedOrders.weekOrders,
+            "Nenhum pedido concluído nesta semana."
+          )}
         </OrderSection>
 
-        {/* Seção Pedidos Futuros (conforme imagem) */}
-        <OrderSection title="Pedidos futuros">
-          <CompletedOrderCard
-            customerName="Emma Frost Stark"
-            timestamp="12 de Maio"
-            shippingMethod="Entrega a domicílio"
-            totalValue="211,90"
-            paymentStatus="Aguardando Pagamento"
-            showDeleteIcon={true}
-          />
-          <CompletedOrderCard
-            customerName="Emily Silveiro Pita"
-            timestamp="13 de Maio"
-            shippingMethod="Entrega a domicílio"
-            totalValue="12,90"
-            paymentStatus="Pago"
-            showDeleteIcon={true}
-          />
+        <OrderSection title="Concluídos Anteriormente">
+          {renderOrderList(
+            categorizedOrders.pastOrders,
+            "Nenhum pedido antigo encontrado."
+          )}
         </OrderSection>
       </ScrollView>
     </SafeAreaView>

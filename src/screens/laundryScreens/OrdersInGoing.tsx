@@ -9,69 +9,48 @@ import {
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { BackArrow, NotificationBtn } from "@/components";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from "@react-navigation/native";
+import { CompletedOrderType } from "@/types"; // 1. Importar o tipo
 
-// --- Dados Mock para a lista de pedidos ---
-const mockOrders = [
-  {
-    id: 1,
-    customerName: "Adriana Santiata Barreto",
-    totalPieces: 12,
-    services: ["Lavar e passar"],
-    machine: "Máquina A2 - 08 Brastemp",
-  },
-  {
-    id: 2,
-    customerName: "Melissa Somally Yuo-ho",
-    totalPieces: 12,
-    services: ["Lavar e passar", "Lavagem a seco"],
-    machine: "Máquina A2 - 11 Philco",
-  },
-  {
-    id: 3,
-    customerName: "Alexandre Ramos Ramasy",
-    totalPieces: 12,
-    services: ["Lavar e passar"],
-    machine: "Máquina A1 - 02 Brastemp",
-  },
-  {
-    id: 4,
-    customerName: "Alexandre Ramos Ramasy",
-    totalPieces: 12,
-    services: ["Lavar e passar", "Lavagem a seco"],
-    machine: "Máquina A1 - 02 Brastemp",
-  },
-];
+// --- Interface para os parâmetros da rota ---
+type ScreenRouteProp = RouteProp<
+  { params: { orders: CompletedOrderType[] } },
+  "params"
+>;
 
 // --- Componente para o Card de Pedido em Andamento ---
 interface OrderCardProps {
-  customerName: string;
-  totalPieces: number;
-  services: string[];
-  machine: string;
+  order: CompletedOrderType; // Passa o objeto inteiro para facilitar a navegação
 }
 
-function InProgressOrderCard({
-  customerName,
-  totalPieces,
-  services,
-  machine,
-}: OrderCardProps) {
+function InProgressOrderCard({ order }: OrderCardProps) {
   const navigation = useNavigation<NavigationProp<any>>();
+
+  // Calcula o total de peças a partir dos itens do pedido
+  const totalPieces = order.items.items.reduce(
+    (acc, item) => acc + item.qntd,
+    0
+  );
+  // Pega uma lista de serviços únicos
+  const services = [...new Set(order.items.items.map((item) => item.service))];
 
   return (
     <View className="bg-white rounded-lg p-4 mb-4 shadow-sm border border-gray-100">
-      {/* Linha Superior: Nome e Total de Peças */}
       <View className="flex-row justify-between items-center mb-2">
+        {/* Usa o ID do cliente como nome temporário */}
         <Text className="text-base font-bold text-gray-800">
-          {customerName}
+          Cliente ID: {order.customerId.substring(0, 8)}...
         </Text>
         <Text className="text-xs text-gray-400">
           Total de peças: {totalPieces}
         </Text>
       </View>
 
-      {/* Tags de Serviço */}
       <View className="flex-row flex-wrap my-1">
         {services.map((service, index) => (
           <View
@@ -85,10 +64,11 @@ function InProgressOrderCard({
         ))}
       </View>
 
-      {/* Informação da Máquina */}
-      <Text className="text-sm text-gray-500 my-2">{machine}</Text>
+      {/* A informação da máquina não vem da API, então usamos um placeholder */}
+      <Text className="text-sm text-gray-500 my-2">
+        Máquina não especificada
+      </Text>
 
-      {/* Ações */}
       <View className="flex-row justify-end items-center border-t border-gray-100 pt-3 mt-2">
         <TouchableOpacity className="p-1">
           <Ionicons
@@ -98,7 +78,8 @@ function InProgressOrderCard({
           />
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => navigation.navigate("OrderDetails")}
+          // Navega para detalhes passando o objeto completo do pedido
+          onPress={() => navigation.navigate("OrderDetails", { order: order })}
           className="bg-gray-800 px-3 py-2 rounded-md ml-2"
         >
           <Text className="text-white text-xs font-bold">Mostrar Tarefa</Text>
@@ -110,6 +91,10 @@ function InProgressOrderCard({
 
 // --- Componente Principal da Tela ---
 export default function InProgressOrdersScreen() {
+  const route = useRoute<ScreenRouteProp>();
+  // 2. Pega os pedidos dos parâmetros da rota
+  const orders = route.params?.orders || [];
+
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       <StatusBar barStyle="light-content" />
@@ -127,24 +112,26 @@ export default function InProgressOrdersScreen() {
         <NotificationBtn color="white" />
       </View>
 
-      {/* Filtro */}
       <View className="px-4 py-3 flex-row items-center">
         <View className="bg-[#2c003d] px-4 py-2 rounded-lg flex-row items-center">
           <Text className="text-white font-bold mr-2">Máquinas ocupadas</Text>
         </View>
       </View>
 
-      {/* Lista de Pedidos */}
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16 }}>
-        {mockOrders.map((order) => (
-          <InProgressOrderCard
-            key={order.id}
-            customerName={order.customerName}
-            totalPieces={order.totalPieces}
-            services={order.services}
-            machine={order.machine}
-          />
-        ))}
+        {/* 3. Renderização dinâmica */}
+        {orders.length > 0 ? (
+          orders.map((order) => (
+            <InProgressOrderCard key={order.id} order={order} />
+          ))
+        ) : (
+          // 4. Mensagem para quando não houver pedidos
+          <View className="mt-10 items-center">
+            <Text className="text-gray-500">
+              Nenhum pedido em andamento no momento.
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,14 @@ import {
   TouchableOpacity,
   StatusBar,
   Image,
+  Alert,
 } from "react-native";
 import { NavigationProp, useNavigation } from "@react-navigation/native";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { BackArrow } from "@/components";
-
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { CompletedOrderType } from "@/types";
+import { blankPhoto } from "assets/blank-icon";
 
 const OrderItemRow = ({
   quantity,
@@ -43,9 +45,109 @@ const RadioButton = ({ selected }: { selected: boolean }) => (
 );
 
 // --- Componente Principal da Tela ---
-export default function OrderDetailsScreen() {
-  const [washType, setWashType] = useState("washAndIron");
-  const [deliveryType, setDeliveryType] = useState("homeDelivery");
+export default function OrderDetailsScreen({ route }: { route: any }) {
+  const navigation = useNavigation();
+  const [totalPieces, setTotalPieces] = useState(0);
+  const [order, setOrder] = useState<CompletedOrderType>();
+
+  useEffect(() => {
+    const currentOrder = route.params.order;
+
+    setOrder(currentOrder);
+
+    const calculateTotalPieces = () => {
+      if (currentOrder && currentOrder.items && currentOrder.items.items) {
+        const total = currentOrder.items.items.reduce((sum, item) => {
+          return sum + item.qntd;
+        }, 0);
+
+        setTotalPieces(total);
+      }
+    };
+
+    calculateTotalPieces();
+  }, [route.params.order]);
+
+  function formatarData(dateString: string): string {
+    // Cria um objeto Date a partir da string ISO
+    const data = new Date(dateString);
+
+    // Define as opções de formatação com o tipo Intl.DateTimeFormatOptions
+    const options: Intl.DateTimeFormatOptions = {
+      // Nota: O 'year' é solicitado para garantir que o formato 'pt-BR'
+      // sempre inclua DD/MM, mesmo que não usemos o ano no final.
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Sao_Paulo", // Converte para o fuso de Brasília (UTC-3)
+    };
+
+    // Cria o formatador regional (Português do Brasil)
+    const formatador = new Intl.DateTimeFormat("pt-BR", options);
+
+    // Define o tipo para o objeto de partes da data
+    // Usamos Record<string, string> para manter simples
+    type DatePartsMap = Record<string, string>;
+
+    // Formata a data e extrai as partes usando 'reduce'
+    const partes = formatador
+      .formatToParts(data)
+      .reduce((acc: DatePartsMap, part) => {
+        // part.type pode ser 'day', 'month', 'year', 'hour', 'minute', 'literal', etc.
+        // Armazenamos o valor de cada parte usando seu 'type' como chave
+        acc[part.type] = part.value;
+        return acc;
+      }, {}); // O objeto inicial vazio é tipado por 'acc: DatePartsMap'
+
+    // Monta a string no formato exato "DD/MM às HHhMM"
+    return `${partes.day}/${partes.month} às ${partes.hour}h${partes.minute}`;
+  }
+
+  async function updateOrderStatus(orderId: string, status: string) {
+    if (status === "EXCLUDED") {
+      const response = await fetch(
+        `https://illuminational-earlene-incoherently.ngrok-free.dev/orders/${orderId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        Alert.alert(
+          "Erro",
+          "houve um erro durante a operação, tente novamente mais tarde."
+        );
+        console.log(response);
+        return;
+      }
+      const data = await response.json();
+      console.log(data);
+    }
+
+    const response = await fetch(
+      `https://illuminational-earlene-incoherently.ngrok-free.dev/orders/${orderId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fields: {
+            status: status,
+          },
+        }),
+      }
+    );
+    if (!response.ok) {
+      Alert.alert("Erro", "Tente novamente mais tarde");
+      console.log(response);
+      return;
+    }
+    const data = await response.json();
+    console.log(data);
+    navigation.goBack();
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
@@ -55,17 +157,19 @@ export default function OrderDetailsScreen() {
           <BackArrow />
 
           <View className="flex-1 ml-20">
-            <Text className="text-white text-2xl font-bold">Romeiro Brito</Text>
-            <Text className="text-gray-300 text-sm">
-              Pedido feito: 08/08 às 14h27
+            <Text className="text-white text-2xl font-bold">
+              Cliente ID: {order?.customerId.substring(0, 8)}...
             </Text>
             <Text className="text-gray-300 text-sm">
-              Para entrega: 09/08 até às 16h
+              Pedido feito: {formatarData(route.params.order?.created_at || "")}
+            </Text>
+            <Text className="text-gray-300 text-sm">
+              Para entrega: {formatarData(route.params.order?.close_at || "")}
             </Text>
           </View>
 
           <Image
-            source={{ uri: "https://i.pravatar.cc/150?u=a042581f4e29026704d" }} // Imagem de avatar placeholder
+            source={{ uri: blankPhoto }} // Imagem de avatar placeholder
             className="w-16 h-16 rounded-full border-2 border-white"
           />
         </View>
@@ -78,34 +182,22 @@ export default function OrderDetailsScreen() {
             Tipo de Lavagem:
           </Text>
           <View className="flex-row gap-3">
-            <TouchableOpacity
-              className={`px-4 py-2 rounded-lg ${washType === "washAndIron" ? "bg-[#2c003d]" : "bg-gray-200"}`}
-              onPress={() => setWashType("washAndIron")}
-            >
-              <Text
-                className={`${washType === "washAndIron" ? "text-white" : "text-gray-700"} font-semibold`}
-              >
-                Lavar e passar
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className={`px-4 py-2 rounded-lg ${washType === "dryClean" ? "bg-[#2c003d]" : "bg-gray-200"}`}
-              onPress={() => setWashType("dryClean")}
-            >
-              <Text
-                className={`${washType === "dryClean" ? "text-white" : "text-gray-700"} font-semibold`}
-              >
-                Lavagem à seco
-              </Text>
-            </TouchableOpacity>
+            {order?.items.items.map((item, i) => {
+              return (
+                <View key={i} className={`px-4 py-2 rounded-lg bg-[#2c003d]`}>
+                  <Text className={`text-white font-semibold`}>
+                    {item.service}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
 
         {/* Opções de Entrega */}
         <View className="flex-row justify-between mb-6">
-          <TouchableOpacity
-            className={`w-[48%] p-3 rounded-lg border-2 ${deliveryType === "homeDelivery" ? "border-purple-700 bg-purple-100" : "border-gray-300"}`}
-            onPress={() => setDeliveryType("homeDelivery")}
+          <View
+            className={`w-full p-3 rounded-lg border-2 border-purple-700 bg-purple-100`}
           >
             <View className="flex-row items-start">
               <View className="w-[91%]">
@@ -119,34 +211,31 @@ export default function OrderDetailsScreen() {
                   R. Das Flores, 123, São Paulo - SP
                 </Text>
               </View>
-              <RadioButton selected={deliveryType === "homeDelivery"} />
             </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            className={`w-[48%] p-3 rounded-lg border-2 ${deliveryType === "pickup" ? "border-purple-700 bg-purple-100" : "border-gray-300"} items-center justify-center`}
-            onPress={() => setDeliveryType("pickup")}
-          >
-            <View className="flex-row justify-between items-start w-full">
-              <Text className="font-bold text-gray-800">Buscar no local</Text>
-              <RadioButton selected={deliveryType === "pickup"} />
-            </View>
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Lista de Itens */}
         <View className="bg-gray-50 p-4 rounded-lg mb-6">
-          <OrderItemRow quantity={4} name="Camisas" price="24,90" />
-          <OrderItemRow quantity={3} name="Calças" price="24,90" />
-          <OrderItemRow quantity={2} name="Pares de meias" price="24,90" />
-          <OrderItemRow quantity={7} name="Calcinhas" price="24,90" />
+          {order?.items.items.map((item, i) => {
+            return (
+              <OrderItemRow
+                key={i}
+                quantity={item.qntd}
+                name={item.name}
+                price={((item.unitPrice_inCents * item.qntd) / 100)
+                  .toFixed(2)
+                  .replace(".", ",")}
+              />
+            );
+          })}
         </View>
 
         {/* Sumário de Custos */}
         <View className="mb-8">
           <View className="flex-row justify-between py-1">
             <Text className="text-gray-500">Total de peças:</Text>
-            <Text className="font-bold text-gray-800">16 Peças</Text>
+            <Text className="font-bold text-gray-800">{totalPieces} Peças</Text>
           </View>
           <View className="flex-row justify-between py-1">
             <Text className="text-gray-500">Frete:</Text>
@@ -154,7 +243,10 @@ export default function OrderDetailsScreen() {
           </View>
           <View className="bg-[#2c003d] p-3 rounded-lg flex-row justify-between mt-3">
             <Text className="text-white font-bold text-lg">Valor Total:</Text>
-            <Text className="text-white font-bold text-lg">R$ 178,10</Text>
+            <Text className="text-white font-bold text-lg">
+              R${" "}
+              {((order?.total_inCents || 0) / 100).toFixed(2).replace(".", ",")}
+            </Text>
           </View>
         </View>
 
@@ -163,9 +255,25 @@ export default function OrderDetailsScreen() {
           <TouchableOpacity className="bg-gray-100 p-3 rounded-full">
             <Ionicons name="chatbubbles-outline" size={30} color="#2c003d" />
           </TouchableOpacity>
-          <TouchableOpacity className="bg-purple-400 flex-1 py-4 rounded-lg items-center">
+          <TouchableOpacity
+            onPress={() =>
+              updateOrderStatus(
+                order?.id || "",
+                order?.status === "PENDING"
+                  ? "ONGOING"
+                  : order?.status === "ONGOING"
+                    ? "CONCLUDED"
+                    : "EXCLUDED"
+              )
+            }
+            className="bg-purple-400 flex-1 py-4 rounded-lg items-center"
+          >
             <Text className="text-white text-base font-bold">
-              Iniciar Lavagem
+              {order?.status === "PENDING"
+                ? "Iniciar Lavagem"
+                : order?.status === "ONGOING"
+                  ? "Concluir Lavagem"
+                  : "Excluir Lavagem"}
             </Text>
           </TouchableOpacity>
         </View>

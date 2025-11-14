@@ -18,7 +18,7 @@ export default async function calculateDistance({
         method: "POST",
         headers: {
           "X-Billing-Token":
-            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjEifQ.eyJpc3MiOiJuYWRsZXMiLCJpYXQiOiIxNzYyOTE2MDA4IiwicHVycG9zZSI6ImFwaV9hdXRoZW50aWNhdGlvbiIsInN1YiI6IjcyOTg0MGVmZTE4MjQ4ODZiNmE4ZjNhYmZmNjNiMTFjIn0.M3RQa5gaItdbFePXx-a9MpZ_dh_wLgRXKxVFx_HBVUg",
+            "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiIsImtpZCI6IjEifQ.eyJpc3MiOiJuYWRsZXMiLCJpYXQiOiIxNzYzMTQxMjYxIiwicHVycG9zZSI6ImFwaV9hdXRoZW50aWNhdGlvbiIsInN1YiI6ImM1ZTQ0NWQ2NjkwNzQzZTViYmZlMDQ4MjE3NGQ0NGY1In0.daex-4lsZiPSYe4lii7fBceA3oP08W9PS32f1C0yS2E",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -34,6 +34,9 @@ export default async function calculateDistance({
       }
     );
     const data = await response.json();
+
+    console.log(data);
+
     return {
       distance: data.route.car.distance.toFixed(1),
       duration: Math.round(data.route.car.duration / 60),

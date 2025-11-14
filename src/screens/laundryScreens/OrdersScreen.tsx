@@ -32,6 +32,7 @@ interface OrderCardProps {
   serviceType: string;
   deliveryDate: string;
   orderId: string; // Adicionado para navegação
+  order: CompletedOrderType;
 }
 
 function OrderCard({
@@ -40,6 +41,7 @@ function OrderCard({
   serviceType,
   deliveryDate,
   orderId,
+  order,
 }: OrderCardProps) {
   const navigation = useNavigation<NavigationProp<any>>();
 
@@ -64,10 +66,7 @@ function OrderCard({
 
       <View className="flex-row-reverse gap-2 items-center border-t border-gray-100 pt-2">
         <TouchableOpacity
-          // Passa o ID do pedido para a tela de detalhes
-          onPress={() =>
-            navigation.navigate("OrderDetails", { orderId: orderId })
-          }
+          onPress={() => navigation.navigate("OrderDetails", { order: order })}
           className="bg-gray-800 px-3 py-2 rounded-md"
         >
           <Text className="text-white text-xs font-bold">Mostrar Tarefa</Text>
@@ -167,6 +166,7 @@ export default function RegisteredOrdersScreen() {
 
       return (
         <OrderCard
+          order={order}
           key={order.id}
           orderId={order.id || ""}
           // !! IMPORTANTE !! Substitua pelos dados reais do cliente
