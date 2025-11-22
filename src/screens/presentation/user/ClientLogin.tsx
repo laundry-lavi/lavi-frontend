@@ -16,6 +16,7 @@ import { Text, BackArrow, PasswordInput } from "@/components";
 import { UserLogin } from "@/types";
 import { CustomerContext } from "@/contexts";
 import { API_URL } from "@/constants/backend";
+import { saveCustomerSession } from "@/storage/session";
 
 const dados = {
   email: "test3123@gmail.com",
@@ -72,6 +73,11 @@ export default function ClientLogin() {
           body.details || body.message || "Email ou senha incorretos."
         );
       }
+
+      if(!body.token) {
+        throw new Error("Token não definido no Body da requisição");
+      }
+      await saveCustomerSession(body.token);
       const customerDetails = body.customer;
       setCustomerData({
         token: body.token,
@@ -89,7 +95,6 @@ export default function ClientLogin() {
       });
 
       Alert.alert("Sucesso!", "Login realizado com sucesso.");
-      console.log(body.token);
       navigation.navigate("InitialRoute");
     } catch (error: any) {
       console.error(error);
