@@ -36,6 +36,7 @@ import {
   LaundryContext,
   AuthenticationContext,
 } from "@/contexts";
+import { API_URL } from "@/constants/backend";
 
 const typeAccountDropdownData = [
   { label: "Corrente", value: "corrente" },
@@ -227,7 +228,7 @@ export default function CorpSignin() {
 
   const createLaundry = (laundry: Laundry) => {
     fetch(
-      "https://illuminational-earlene-incoherently.ngrok-free.dev/laundries",
+      `${API_URL}/laundries`,
       {
         method: "POST",
         headers: {

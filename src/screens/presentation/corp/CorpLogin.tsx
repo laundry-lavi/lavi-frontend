@@ -15,6 +15,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Text, BackArrow, PasswordInput } from "@/components";
 import { AuthenticationContext, OwnerContext } from "@/contexts/";
 import { getMember } from "@/functions/";
+import { API_URL } from "@/constants/backend";
 
 interface laundryLoginData {
   email: string;
@@ -50,19 +51,16 @@ export default function CorpLogin() {
   };
 
   const authenticateLaundry = (laundry: laundryLoginData) => {
-    fetch(
-      "https://illuminational-earlene-incoherently.ngrok-free.dev/members/auth",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: laundry.email,
-          password: laundry.password,
-        }),
-      }
-    )
+    fetch(`${API_URL}/members/auth`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: laundry.email,
+        password: laundry.password,
+      }),
+    })
       .then((response) => response.json())
       .then((body) => {
         if (body.details == "E-mail ou Senha incorretos.") {

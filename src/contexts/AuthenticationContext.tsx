@@ -1,3 +1,4 @@
+import { API_URL } from "@/constants/backend";
 import { createContext, useState } from "react";
 
 export const AuthenticationContext = createContext({
@@ -35,7 +36,7 @@ export const AuthenticationProvider = ({
 
   const authenticateMember = (email: string, password: string): boolean => {
     fetch(
-      "https://illuminational-earlene-incoherently.ngrok-free.dev/members/auth",
+      `${API_URL}/members/auth`,
       {
         method: "PUT",
         headers: {

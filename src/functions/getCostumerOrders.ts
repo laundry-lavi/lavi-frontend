@@ -1,3 +1,4 @@
+import { API_URL } from "@/constants/backend";
 import { CompletedOrderType, OrderType } from "@/types";
 import { Alert } from "react-native";
 
@@ -5,7 +6,7 @@ export default async function getCostumerOrders(
   costumerId: string
 ): Promise<CompletedOrderType[]> {
   const response = await fetch(
-    `https://illuminational-earlene-incoherently.ngrok-free.dev/customers/${costumerId}/orders`
+    `${API_URL}/customers/${costumerId}/orders`
   );
 
   if (!response.ok) {
@@ -18,7 +19,7 @@ export default async function getCostumerOrders(
   const dataOrders = await response.json();
   const itemsPromise = await dataOrders.orders.map(async (ord: OrderType) => {
     const responseItems = await fetch(
-      `https://illuminational-earlene-incoherently.ngrok-free.dev/orders/${ord.id}/items`
+      `${API_URL}/orders/${ord.id}/items`
     );
     const dataItems = await responseItems.json();
 

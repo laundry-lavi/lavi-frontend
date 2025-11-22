@@ -1,9 +1,10 @@
+import { API_URL } from "@/constants/backend";
 import { Alert } from "react-native";
 
 export default async function getCustomer(email: string) {
   try {
     const idsResponse = await fetch(
-      "https://illuminational-earlene-incoherently.ngrok-free.dev/public/customers"
+      `${API_URL}/public/customers`
     );
 
     if (!idsResponse.ok) {
@@ -18,7 +19,7 @@ export default async function getCustomer(email: string) {
     const customerPromises = idsData.ids.map(async (id: string) => {
       try {
         const customerResponse = await fetch(
-          `https://illuminational-earlene-incoherently.ngrok-free.dev/customer/${id}`
+          `${API_URL}/customer/${id}`
         );
 
         if (!customerResponse.ok) {

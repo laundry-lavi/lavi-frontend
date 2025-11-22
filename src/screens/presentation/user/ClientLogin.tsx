@@ -16,6 +16,7 @@ import { Text, BackArrow, PasswordInput } from "@/components";
 import { UserLogin } from "@/types";
 import { CustomerContext } from "@/contexts";
 import { getCustomer } from "@/functions/";
+import { API_URL } from "@/constants/backend";
 
 const dados = {
   email: "test3123@gmail.com",
@@ -49,7 +50,7 @@ export default function ClientLogin() {
 
   const loginCostumer = (customer: UserLogin) => {
     fetch(
-      "https://illuminational-earlene-incoherently.ngrok-free.dev/customer/sign",
+      `${API_URL}/customer/sign`,
       {
         method: "PUT",
         headers: {

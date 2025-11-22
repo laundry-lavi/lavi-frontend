@@ -20,6 +20,7 @@ import { Text, BackArrow, PasswordInput } from "@/components";
 import { Laundry, OwnerFormData, Owner } from "@/types";
 import { OwnerContext } from "@/contexts/";
 import { cpfMask } from "@/constants/inputMasks";
+import { API_URL } from "@/constants/backend";
 
 const formMockData: OwnerFormData = {
   name: "Monkey D Luffy",
@@ -66,7 +67,7 @@ export default function OwnerRegister() {
   };
 
   const createOwner = (owner: Owner) => {
-    fetch("http://52.67.221.152/members", {
+    fetch(`${API_URL}/members`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

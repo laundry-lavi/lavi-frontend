@@ -13,6 +13,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Feedback } from "@/types";
 import { FeedbackCard, StarRating, Text } from "@/components";
 import { CustomerContext } from "@/contexts";
+import { API_URL } from "@/constants/backend";
 
 type ReviewsSectionProps = {
   laundryId: string;
@@ -66,7 +67,7 @@ export default function ReviewsSection({
     try {
       // 1. Postar o texto do feedback
       const response = await fetch(
-        "https://illuminational-earlene-incoherently.ngrok-free.dev/feedbacks/",
+        `${API_URL}/feedbacks/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

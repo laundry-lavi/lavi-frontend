@@ -3,6 +3,7 @@
 import React, { createContext, useState, useContext } from "react";
 import { distance, getFeedbacks } from "@/functions"; // Supondo que suas funções estejam aqui
 import { LocationContext } from "./LocationContext";
+import { API_URL } from "@/constants/backend";
 
 export const LaundriesListContext = createContext({
   laundriesList: [] as any[],
@@ -38,7 +39,7 @@ export function LaundriesListProvider({
 
     try {
       const response = await fetch(
-        "https://illuminational-earlene-incoherently.ngrok-free.dev/laundries/search/{name}"
+        `${API_URL}/laundries/search/{name}`
       );
       const data = await response.json();
 

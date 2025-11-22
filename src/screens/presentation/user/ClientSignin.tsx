@@ -32,6 +32,7 @@ import {
 } from "@/constants/inputMasks";
 import { checkingCep } from "@/functions";
 import { CustomerContext } from "@/contexts";
+import { API_URL } from "@/constants/backend";
 
 const dropdownData = [
   { label: "Masculino", value: "1" },
@@ -102,7 +103,7 @@ export default function ClientSignin() {
     address,
   }: UserSignin) => {
     await fetch(
-      "https://illuminational-earlene-incoherently.ngrok-free.dev/customer",
+      `${API_URL}/customer`,
       {
         method: "POST",
         headers: {

@@ -1,3 +1,4 @@
+import { API_URL } from "@/constants/backend";
 import { Feedback } from "@/types/";
 
 export default async function getFeedbacks(
@@ -11,7 +12,7 @@ export default async function getFeedbacks(
   }
 
   const response = await fetch(
-    `https://illuminational-earlene-incoherently.ngrok-free.dev/feedbacks/${laundryId}?page=${page}&pageSize=${pageSize}`
+    `${API_URL}/feedbacks/${laundryId}?page=${page}&pageSize=${pageSize}`
   );
 
   // Adiciona um tratamento de erro básico

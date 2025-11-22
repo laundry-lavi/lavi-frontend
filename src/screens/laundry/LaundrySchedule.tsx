@@ -18,6 +18,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { BackArrow, Text } from "@/components";
 import { CustomerContext, LocationContext } from "@/contexts";
 import { OrderType, ItemType } from "@/types";
+import { API_URL } from "@/constants/backend";
 
 // --- DEMAIS COMPONENTES E LÓGICA (sem alterações) ---
 const clothingDropdownData = [
@@ -375,7 +376,7 @@ export default function LaundryScheduleScreen({ route }: any) {
   const createOrder = async (order: OrderType, items: ItemType[]) => {
     try {
       const response = await fetch(
-        "https://illuminational-earlene-incoherently.ngrok-free.dev/orders",
+        `${API_URL}/orders`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

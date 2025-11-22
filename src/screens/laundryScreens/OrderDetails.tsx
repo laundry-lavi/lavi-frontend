@@ -15,6 +15,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { BackArrow } from "@/components";
 import { CompletedOrderType } from "@/types";
 import { blankPhoto } from "assets/blank-icon";
+import { API_URL } from "@/constants/backend";
 
 const OrderItemRow = ({
   quantity,
@@ -107,12 +108,9 @@ export default function OrderDetailsScreen({ route }: { route: any }) {
 
   async function updateOrderStatus(orderId: string, status: string) {
     if (status === "EXCLUDED") {
-      const response = await fetch(
-        `https://illuminational-earlene-incoherently.ngrok-free.dev/orders/${orderId}`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`${API_URL}/orders/${orderId}`, {
+        method: "DELETE",
+      });
       if (!response.ok) {
         Alert.alert(
           "Erro",
@@ -125,20 +123,17 @@ export default function OrderDetailsScreen({ route }: { route: any }) {
       console.log(data);
     }
 
-    const response = await fetch(
-      `https://illuminational-earlene-incoherently.ngrok-free.dev/orders/${orderId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
+    const response = await fetch(`${API_URL}/orders/${orderId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fields: {
+          status: status,
         },
-        body: JSON.stringify({
-          fields: {
-            status: status,
-          },
-        }),
-      }
-    );
+      }),
+    });
     if (!response.ok) {
       Alert.alert("Erro", "Tente novamente mais tarde");
       console.log(response);
