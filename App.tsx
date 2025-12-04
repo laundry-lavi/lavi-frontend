@@ -43,6 +43,7 @@ import {
   CustomerProvider,
 } from "./src/contexts/";
 import "./global.css";
+import { SocketProvider } from "@/contexts/SocketContext";
 
 const Stack = createStackNavigator();
 
@@ -73,95 +74,97 @@ export default function App() {
               <LaundryProvider>
                 <LocationProvider>
                   <AuthenticationProvider>
-                    <SafeAreaView style={{ flex: 1 }}>
-                      <StatusBar style="auto" hidden={false} />
-                      <Stack.Navigator
-                        initialRouteName="Welcome"
-                        screenOptions={{
-                          headerShown: false,
-                          gestureEnabled: false,
-                        }}
-                      >
-                        {/* <Stack.Screen name="Presentation1" component={Presentation1} />
+                    <SocketProvider>
+                      <SafeAreaView style={{ flex: 1 }}>
+                        <StatusBar style="auto" hidden={false} />
+                        <Stack.Navigator
+                          initialRouteName="Welcome"
+                          screenOptions={{
+                            headerShown: false,
+                            gestureEnabled: false,
+                          }}
+                        >
+                          {/* <Stack.Screen name="Presentation1" component={Presentation1} />
               <Stack.Screen name="Presentation2" component={Presentation2} />
               <Stack.Screen name="Presentation3" component={Presentation3} /> */}
-                        <Stack.Screen
-                          name="Welcome"
-                          component={Welcome}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="ClientLogin"
-                          component={ClientLogin}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="ClientSignin"
-                          component={ClientSignin}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="CorpLogin"
-                          component={CorpLogin}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="CorpSignin"
-                          component={CorpSignin}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="OwnerRegister"
-                          component={OwnerRegister}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="CorpWelcome"
-                          component={CorpWelcome}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="ClientWelcome"
-                          component={ClientWelcome}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="ForgotPassword"
-                          component={ForgotPassword}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="InitialRoute"
-                          component={InitialRoute}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="LaundryHomeScreen"
-                          component={LaundryHome}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="OrdersScreen"
-                          component={OrdersScreen}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="OrdersInGoing"
-                          component={OrdersInGoing}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="OrdersConcluded"
-                          component={OrdersConcluded}
-                          options={{ gestureEnabled: false }}
-                        />
-                        <Stack.Screen
-                          name="OrderDetails"
-                          component={OrderDetails}
-                          options={{ gestureEnabled: false }}
-                        />
-                      </Stack.Navigator>
-                    </SafeAreaView>
+                          <Stack.Screen
+                            name="Welcome"
+                            component={Welcome}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="ClientLogin"
+                            component={ClientLogin}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="ClientSignin"
+                            component={ClientSignin}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="CorpLogin"
+                            component={CorpLogin}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="CorpSignin"
+                            component={CorpSignin}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="OwnerRegister"
+                            component={OwnerRegister}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="CorpWelcome"
+                            component={CorpWelcome}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="ClientWelcome"
+                            component={ClientWelcome}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="ForgotPassword"
+                            component={ForgotPassword}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="InitialRoute"
+                            component={InitialRoute}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="LaundryHomeScreen"
+                            component={LaundryHome}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="OrdersScreen"
+                            component={OrdersScreen}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="OrdersInGoing"
+                            component={OrdersInGoing}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="OrdersConcluded"
+                            component={OrdersConcluded}
+                            options={{ gestureEnabled: false }}
+                          />
+                          <Stack.Screen
+                            name="OrderDetails"
+                            component={OrderDetails}
+                            options={{ gestureEnabled: false }}
+                          />
+                        </Stack.Navigator>
+                      </SafeAreaView>
+                    </SocketProvider>
                   </AuthenticationProvider>
                 </LocationProvider>
               </LaundryProvider>

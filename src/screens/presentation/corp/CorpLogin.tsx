@@ -6,7 +6,9 @@ import {
   ImageBackground,
   Image,
   Alert,
+  ActivityIndicator, // <--- Importe isso
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // <--- Importe isso
 import { NavigationProp, useNavigation } from "@react-navigation/native";
 
 import AntDesign from "@expo/vector-icons/AntDesign";
@@ -16,6 +18,7 @@ import { Text, BackArrow, PasswordInput } from "@/components";
 import { AuthenticationContext, OwnerContext } from "@/contexts/";
 import { getMember } from "@/functions/";
 import { API_URL } from "@/constants/backend";
+import { saveMemberSession } from "@/storage/session";
 
 interface laundryLoginData {
   email: string;
@@ -25,18 +28,13 @@ interface laundryLoginData {
 export default function CorpLogin() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // <--- Estado de Loading
+
   const navigation = useNavigation<NavigationProp<any>>();
   const { setIsLaundryTrue } = useContext(AuthenticationContext);
   const { setOwnerData } = useContext(OwnerContext);
 
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
-  const [formMessage, setFormMessage] = useState<{
-    title: string;
-    msg: string;
-  }>({
-    title: "Erro",
-    msg: "Erro ao autenticar. Tente novamente mais tarde.",
-  });
 
   const validateFields = () => {
     const newErrors: { [key: string]: string | null } = {};
@@ -50,56 +48,71 @@ export default function CorpLogin() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const authenticateLaundry = (laundry: laundryLoginData) => {
-    fetch(`${API_URL}/members/auth`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: laundry.email,
-        password: laundry.password,
-      }),
-    })
-      .then((response) => response.json())
-      .then((body) => {
-        if (body.details == "E-mail ou Senha incorretos.") {
-          setFormMessage({
-            title: "Erro",
-            msg: "E-mail ou Senha incorretos. Tente novamente.",
-          });
-        } else if (body.token) {
-          Alert.alert("Sucesso", "Login realizado com sucesso!");
-          let member = null;
-          getMember(email).then((m) => {
-            member = m;
-            setOwnerData({
-              name: member.name,
-              email: member.email,
-              cpf: member.cpf,
-              memberId: member.id,
-              token: body.token,
-              role: member.roles[0],
-            });
-          });
-          navigation.navigate("InitialRoute");
-        } else {
-          setFormMessage({
-            title: "Erro",
-            msg: "Erro ao autenticar. Tente novamente mais tarde.",
-          });
-        }
-      })
-      .catch((err) => {
-        console.error("Erro ao autenticar:", err);
-        setFormMessage({
-          title: "Erro",
-          msg: "Erro ao autenticar. Tente novamente mais tarde.",
-        });
+  // === NOVA LÓGICA REFATORADA ===
+  const authenticateLaundry = async (laundry: laundryLoginData) => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/members/auth`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: laundry.email,
+          password: laundry.password,
+        }),
       });
+
+      const body = await response.json();
+      console.log(body);
+
+      // 1. Validação de Credenciais (401)
+      if (response.status === 401) {
+        Alert.alert("Erro", "E-mail ou senha incorretos.");
+        return;
+      }
+
+      // 2. Validação de Erros Genéricos
+      if (response.status !== 200 && response.status !== 201) {
+        throw new Error(body.details || "Erro ao autenticar.");
+      }
+
+      // 3. Se chegou aqui, o token é válido. Agora buscamos os dados do membro.
+      const member = body.member;
+
+      if (!member) {
+        throw new Error("Login validado, mas dados do membro não encontrados.");
+      }
+
+      // 4. Atualiza o Contexto (Memória)
+      setIsLaundryTrue(); // Define que é uma lavanderia
+      setOwnerData({
+        name: member.name,
+        email: member.email,
+        cpf: member.cpf,
+        memberId: member.id,
+        token: body.token,
+        role: member.roles[0],
+      });
+
+      // 5. Persiste a Sessão (Disco)
+      // Salvamos o tipo como 'corporate' para diferenciar do 'customer' no auto-login
+      await saveMemberSession(body.token);
+      Alert.alert("Sucesso", "Login realizado com sucesso!");
+      navigation.navigate("InitialRoute");
+    } catch (error: any) {
+      console.error("Erro login corp:", error);
+      Alert.alert("Erro", error.message || "Ocorreu um erro inesperado.");
+    } finally {
+      setIsLoading(false);
+    }
   };
+  // ==============================
 
   const handleSubmit = () => {
+    if (isLoading) return; // Evita duplo clique
+
     if (validateFields()) {
       const laundryData: laundryLoginData = {
         email: email,
@@ -107,13 +120,7 @@ export default function CorpLogin() {
       };
       authenticateLaundry(laundryData);
     } else {
-      setFormMessage({
-        title: "Erro",
-        msg: "Por favor, corrija os campos destacados.",
-      });
-      setTimeout(() => {
-        Alert.alert(formMessage.title, formMessage.msg);
-      }, 500);
+      Alert.alert("Atenção", "Por favor, corrija os campos destacados.");
     }
   };
 
@@ -123,19 +130,15 @@ export default function CorpLogin() {
         className="w-full h-full"
         source={require("assets/bubble-bg2.png")}
       >
-        {/* SETA PARA VOLTAR */}
         <BackArrow />
 
-        {/* HEADER DA TELA */}
         <Image
           className="h-[140] mt-20 self-center"
           source={require("assets/logo.png")}
           resizeMode="contain"
         />
 
-        {/* CONTAINER DO FORMS */}
         <View className="gap-3 w-[95vw] h-[70vh] mx-auto my-3 p-4 bg-white border rounded-xl border-[#d9d9d9]">
-          {/* TEXTO INTRODUTÓRIO */}
           <Text className="text-[#5b5265] text-xl font-sansBold text-center my-7">
             Que bom ter você de volta!
           </Text>
@@ -156,8 +159,6 @@ export default function CorpLogin() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              textContentType="emailAddress"
-              importantForAutofill="yes"
               autoComplete="email"
             />
           </View>
@@ -181,7 +182,6 @@ export default function CorpLogin() {
             </Text>
           )}
 
-          {/* TEXTO ESQUECEU SUA SENHA */}
           <TouchableOpacity
             onPress={() => navigation.navigate("ForgotPassword")}
             className="mb-3"
@@ -191,18 +191,19 @@ export default function CorpLogin() {
             </Text>
           </TouchableOpacity>
 
-          {/* BOTÃO DE CONFIRMAÇÃO DO FORMS */}
+          {/* BOTÃO DE LOGIN COM LOADING */}
           <TouchableOpacity
-            className="w-full py-3 items-center bg-[#080030] rounded-lg"
-            onPress={() => {
-              setIsLaundryTrue();
-              handleSubmit();
-            }}
+            className={`w-full py-3 items-center rounded-lg ${isLoading ? "bg-gray-400" : "bg-[#080030]"}`}
+            onPress={handleSubmit} // Removi o setIsLaundryTrue daqui e coloquei no sucesso da função
+            disabled={isLoading}
           >
-            <Text className="text-white text-lg font-sansBold">Login</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text className="text-white text-lg font-sansBold">Login</Text>
+            )}
           </TouchableOpacity>
 
-          {/* TEXTO PARA LEVAR AO LOGIN EMPRESARIAL */}
           <View className="flex flex-row items-center justify-center mb-10">
             <Text className="text-[#545454]">Não tem uma conta? </Text>
             <TouchableOpacity
@@ -212,7 +213,6 @@ export default function CorpLogin() {
             </TouchableOpacity>
           </View>
 
-          {/* ENTRAR COM O GOOGLE */}
           <Text className="text-center text-[#545454]">
             Ou, continuar por...
           </Text>

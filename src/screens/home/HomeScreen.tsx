@@ -10,9 +10,13 @@ import {
   LaundriesListContext,
   CustomerContext,
 } from "@/contexts/";
+import { useSocket } from "@/contexts/SocketContext";
+import { getSession } from "@/storage/session";
+import { authInSocketIO } from "@/functions/authInSocketIO";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
+  const socket = useSocket();
   const { customerData } = useContext(CustomerContext);
   const { isLaundry } = useContext(AuthenticationContext);
   const { laundriesList, getLaundriesList } = useContext(LaundriesListContext);
@@ -25,6 +29,10 @@ export default function HomeScreen() {
       await getLaundriesList();
     };
     fetchLaundries();
+  }, []);
+
+  useEffect(() => {
+    authInSocketIO(socket);
   }, []);
 
   return isLaundry ? (
