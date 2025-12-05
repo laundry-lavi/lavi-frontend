@@ -88,6 +88,7 @@ export default function CorpLogin() {
       // 4. Atualiza o Contexto (Memória)
       setIsLaundryTrue(); // Define que é uma lavanderia
       setOwnerData({
+        id: member.id,
         name: member.name,
         email: member.email,
         cpf: member.cpf,

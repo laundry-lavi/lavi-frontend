@@ -2,6 +2,7 @@ import { createContext, useState, ReactNode, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type OwnerData = {
+  id: string;
   name: string;
   email: string;
   cpf: string;

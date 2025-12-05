@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,9 +10,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ImageSourcePropType,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { NavigationProp, useNavigation } from "@react-navigation/native";
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
+import { API_URL } from "@/constants/backend";
+import { CustomerContext, OwnerContext } from "@/contexts";
 
 // --- TIPAGEM (TYPESCRIPT) ---
 
@@ -88,7 +95,7 @@ function ChatHeader({ user }: { user: UserInfo }) {
 
   return (
     <View className="flex-row items-center p-3 bg-white border-b border-gray-200">
-      <TouchableOpacity className="p-2" onPress={() => navigation.goBack()}>
+      <TouchableOpacity className="p-2" onPress={() => navigation.navigate('ChatListScreen')}>
         <Ionicons name="arrow-back" size={24} color="#374151" />
       </TouchableOpacity>
       <Image source={user.avatarUrl} className="w-10 h-10 rounded-full mx-3" />
@@ -167,10 +174,126 @@ const MessageInput = () => {
     </View>
   );
 };
+type RouteParams = {
+  chatId: string | undefined;
+};
 
+type MessageFromApi = {
+  id: string;
+  sender_id: string;
+  sender_type: "member" | "customer";
+  content: string;
+  status: string;
+  chat_id: string;
+  created_at: string;
+};
+
+type ChatFromApi = {
+  id: string;
+  customer_name: string;
+  laundry_name: string;
+  customer_profileUrl: string | null;
+  laundry_profileUrl: string | null;
+  customerId: string;
+  laundryId: string;
+};
 // --- TELA PRINCIPAL ---
-
 export default function ChatScreen() {
+  const route = useRoute();
+  const params = route.params as RouteParams;
+  const [messages, setMessages] = useState<Message[]>([]);
+  const { customerData } = useContext(CustomerContext);
+  const { ownerData } = useContext(OwnerContext);
+  const [chatData, setChatData] = useState<UserInfo | null>(null);
+
+  const user_type = customerData?.id ? "customer" : "member";
+
+  if (!params?.chatId) {
+    Alert.alert("Erro nos chats", "chatId não enviado");
+    return;
+  }
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      // 1. Identificar quem é o usuário logado ("Eu")
+      const currentUserId = customerData?.id || ownerData?.id;
+
+      try {
+        const response = await fetch(
+          `${API_URL}/messages/${params.chatId}`
+        );
+
+        if (response.status === 404) {
+          setMessages([]); // Chat vazio
+          return;
+        }
+
+        const body = await response.json();
+        console.log(body);
+        const apiMessages = body.messages as MessageFromApi[];
+
+        // 2. Mapear (Converter) os dados
+        const formattedMessages: Message[] = apiMessages.map((msg) => {
+          // Lógica para saber se a mensagem é minha
+          const isMe = msg.sender_id === currentUserId;
+
+          return {
+            id: msg.id,
+            type: "text", // Assumindo que a API retorna textos por padrão
+            content: msg.content,
+            sender: isMe ? "me" : "other",
+          };
+        });
+
+        // 3. Atualizar o estado (inverte a ordem se necessário, dependendo da sua FlatList)
+        setMessages(formattedMessages); // Ou formattedMessages.reverse() se a API vier do mais antigo pro mais novo e sua lista for invertida
+      } catch (error) {
+        console.error(error);
+        Alert.alert("Erro", "Não foi possível carregar as mensagens");
+      }
+    };
+
+    fetchMessages();
+  }, [params.chatId, customerData, ownerData]);
+
+  useEffect(() => {
+    const fetchChatData = async () => {
+      try {
+        const response = await fetch(`${API_URL}/chats/${params.chatId}`);
+        if (response.status == 404) {
+          Alert.alert("Erro ao buscar dados!", "Chat não encontrado");
+          return;
+        }
+        const body = await response.json();
+        const chat = body.chat as ChatFromApi;
+        setChatData({
+          name:
+            user_type == "customer" ? chat.laundry_name : chat.customer_name,
+          avatarUrl: {
+            uri:
+              (user_type == "customer"
+                ? chat.laundry_profileUrl
+                : chat.customer_profileUrl) ||
+              "https://i.pravatar.cc/1?img=3",
+          },
+          phone: "132",
+        });
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    };
+    fetchChatData();
+  }, []);
+
+  if (!chatData) {
+    return (
+      <SafeAreaView className="flex-1 bg-white justify-center items-center">
+        <Text>Carregando chat...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <KeyboardAvoidingView
@@ -178,9 +301,9 @@ export default function ChatScreen() {
         className="flex-1"
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -50} // Ajuste conforme necessário
       >
-        <ChatHeader user={userInfo} />
+        <ChatHeader user={chatData} />
         <FlatList
-          data={messagesData}
+          data={messages}
           renderItem={({ item }) => <MessageBubble message={item} />}
           keyExtractor={(item) => item.id}
           className="flex-1"
