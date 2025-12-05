@@ -9,28 +9,32 @@ import {
   AuthenticationContext,
   LaundriesListContext,
   CustomerContext,
+  OwnerContext,
 } from "@/contexts/";
 import { useSocket } from "@/contexts/SocketContext";
 import { getSession } from "@/storage/session";
 import { authInSocketIO } from "@/functions/authInSocketIO";
 import { useInAppNotification } from "@/contexts/InAppNotification";
+import { registerEvents } from "@/socket-io";
+import { IoNotification } from "@/socket-io/types";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
   const socket = useSocket();
   const { customerData } = useContext(CustomerContext);
+  const { ownerData } = useContext(OwnerContext);
   const { isLaundry } = useContext(AuthenticationContext);
   const { laundriesList, getLaundriesList } = useContext(LaundriesListContext);
   const { showNotification } = useInAppNotification(); // Hook mágico
+  const username =
+    (isLaundry ? ownerData?.name : customerData?.name) || "Convidado";
 
-  const handleNovaMensagem = () => {
+  const handleWelcome = () => {
     showNotification({
-      title: "Nova Mensagem",
-      message: "Rafael: Oi, tudo bem?",
+      title: `Olá, ${username}!`,
+      message: "É bom te ver por aqui!",
       type: "info", // ou 'success', 'error', 'warning'
-      onPress: () => {
-        navigation.navigate("ChatScreen", { chatId: "123" });
-      },
+      onPress: () => {},
     });
   };
 
@@ -46,7 +50,37 @@ export default function HomeScreen() {
 
   useEffect(() => {
     authInSocketIO(socket);
-    handleNovaMensagem();
+    handleWelcome();
+    socket.on("notification", (data: IoNotification) => {
+      switch (data.type) {
+        case "order-created":
+          showNotification({
+            title: data.title,
+            message: data.content,
+            type: "success",
+          });
+          break;
+        case "order-updated":
+          showNotification({
+            title: "Atualizações sobre pedido",
+            message: "Verifique os dados do seu pedido",
+          });
+          break;
+        default:
+          showNotification({
+            title: data.title,
+            message: data.content,
+          });
+          break;
+      }
+    });
+    socket.on("message", (data) => {
+      console.log(data);
+      showNotification({
+        title: "Mensagem {}",
+        message: "..."
+      })
+    })
   }, []);
 
   return isLaundry ? (

@@ -26,6 +26,7 @@ import { EmployeeProfile, LaundryProfile } from "@/screens/laundryScreens";
 import { getCostumerOrders } from "@/functions/";
 import { blankPhoto } from "assets/blank-icon";
 import { getLaundryById } from "@/functions/";
+import { API_URL } from "@/constants/backend";
 
 type EnrichedOrder = OrderType & { laundryData?: Laundry };
 
@@ -196,6 +197,49 @@ export default function Profile() {
     );
   }
 
+  async function goToOrder(oderId: string) {}
+
+  async function goToChat(laundryId: string) {
+    if (!customerData?.id) {
+      Alert.alert(
+        "Caro convidado",
+        "É necessário estar logado para realizar esta ação."
+      );
+      return;
+    }
+    try {
+      const response = await fetch(`${API_URL}/chats`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat: {
+            laundryId,
+            customerId: customerData.id,
+            memberId: null,
+          },
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        console.error(body);
+        Alert.alert("Erro ao ir para o chat", body.details || "Erro");
+        return;
+      }
+      const { chat } = body;
+      navigation.navigate("ChatRoute", {
+        screen: "ChatScreen",
+        params: {
+          chatId: chat.id,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
   return (
     <SafeAreaView>
       <ImageBackground
@@ -307,14 +351,19 @@ export default function Profile() {
                           </Text>
                         </Text>
                         <View className="flex-row items-center space-x-3">
-                          <TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => goToChat(order.laundryId || "")}
+                          >
                             <Ionicons
                               name="chatbubble-ellipses-outline"
                               size={24}
                               color="#4B5563"
                             />
                           </TouchableOpacity>
-                          <TouchableOpacity className="bg-purple-900 py-2 px-4 rounded-lg">
+                          <TouchableOpacity
+                            onPress={() => goToOrder(order.id || "")}
+                            className="bg-purple-900 py-2 px-4 rounded-lg"
+                          >
                             <Text className="text-white font-bold text-sm">
                               Ver Detalhes
                             </Text>
