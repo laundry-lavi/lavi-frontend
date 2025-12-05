@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+src/constants/backend.ts
 
 # Expo
 .expo/
