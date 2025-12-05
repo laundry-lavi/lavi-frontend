@@ -13,6 +13,7 @@ import {
 import { useSocket } from "@/contexts/SocketContext";
 import { getSession } from "@/storage/session";
 import { authInSocketIO } from "@/functions/authInSocketIO";
+import { useInAppNotification } from "@/contexts/InAppNotification";
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<any>>();
@@ -20,6 +21,18 @@ export default function HomeScreen() {
   const { customerData } = useContext(CustomerContext);
   const { isLaundry } = useContext(AuthenticationContext);
   const { laundriesList, getLaundriesList } = useContext(LaundriesListContext);
+  const { showNotification } = useInAppNotification(); // Hook mágico
+
+  const handleNovaMensagem = () => {
+    showNotification({
+      title: "Nova Mensagem",
+      message: "Rafael: Oi, tudo bem?",
+      type: "info", // ou 'success', 'error', 'warning'
+      onPress: () => {
+        navigation.navigate("ChatScreen", { chatId: "123" });
+      },
+    });
+  };
 
   useEffect(() => {
     if (isLaundry) {
@@ -33,6 +46,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     authInSocketIO(socket);
+    handleNovaMensagem();
   }, []);
 
   return isLaundry ? (
