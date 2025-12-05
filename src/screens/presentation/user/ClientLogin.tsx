@@ -14,7 +14,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { Text, BackArrow, PasswordInput } from "@/components";
 import { UserLogin } from "@/types";
-import { CustomerContext } from "@/contexts";
+import { CustomerContext, OwnerContext } from "@/contexts";
 import { API_URL } from "@/constants/backend";
 import { saveCustomerSession } from "@/storage/session";
 
@@ -25,6 +25,7 @@ const dados = {
 
 export default function ClientLogin() {
   const { setCustomerData, customerData } = useContext(CustomerContext);
+  const { clearOwnerData } = useContext(OwnerContext);
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false); // Novo estado de loading
@@ -95,6 +96,7 @@ export default function ClientLogin() {
       });
 
       Alert.alert("Sucesso!", "Login realizado com sucesso.");
+      clearOwnerData();
       navigation.navigate("InitialRoute");
     } catch (error: any) {
       console.error(error);

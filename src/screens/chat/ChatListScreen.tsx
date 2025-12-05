@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   SafeAreaView,
   View,
@@ -6,11 +6,16 @@ import {
   Image,
   TouchableOpacity,
   ImageSourcePropType,
+  Alert,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 import { Text, ConversationComponent } from "@/components";
 import { Conversation, ConversationStatus } from "@/types";
+import { getSession } from "@/storage/session";
+import { CustomerContext, LaundryContext, OwnerContext } from "@/contexts";
+import { API_URL } from "@/constants/backend";
+import { useNavigation } from "@react-navigation/native";
 
 const conversationsData: Conversation[] = [
   {
@@ -95,14 +100,86 @@ const conversationsData: Conversation[] = [
   },
 ];
 
+type ChatFromApi = {
+  id: string;
+  customer_name: string;
+  laundry_name: string;
+  customer_profileUrl: string | null;
+  laundry_profileUrl: string | null;
+  customerId: string;
+  laundryId: string;
+};
+
 export default function ChatList() {
+  const navigation = useNavigation();
+  const { customerData, clearCustomerData } = useContext(CustomerContext);
+  const { laundryData } = useContext(LaundryContext);
+  const { ownerData } = useContext(OwnerContext);
+  const [chats, setChats] = useState<Conversation[]>([]);
+
+  useEffect(() => {
+    const fetchChats = async () => {
+      const isCustomer = !!customerData?.id;
+      const currentUserId = customerData?.id || ownerData?.id;
+
+      if (!currentUserId) return;
+
+      try {
+        const endpoint = isCustomer
+          ? `${API_URL}/chats/customer/${currentUserId}`
+          : `${API_URL}/chats/laundry/${laundryData?.laundry.id}`;
+
+        const response = await fetch(endpoint);
+        const body = await response.json();
+
+        if (!response.ok) {
+          Alert.alert("Erro!", body.details || "Erro ao buscar chats");
+          console.error(body);
+          return;
+        }
+
+        const { chats: apiChats } = body as { chats: ChatFromApi[] };
+
+        setChats(
+          apiChats.map((c) => ({
+            id: c.id,
+            // Se sou cliente, vejo o nome da Lavanderia. Se sou Dono, vejo o nome do Cliente.
+            name: isCustomer ? c.laundry_name : c.customer_name,
+
+            // Mesma lógica para a foto
+            avatarUrl: {
+              uri: isCustomer
+                ? c.laundry_profileUrl || "https://placehold.co/1"
+                : c.customer_profileUrl || "https://placehold.co/1",
+            },
+
+            // Dados genéricos precisam vir da API futuramente
+            lastMessage: "Clique para ver as mensagens",
+            timestamp: "Hoje",
+            unreadCount: 0,
+            status: "sent",
+            isActive: false,
+          }))
+        );
+      } catch (err) {
+        console.error(err);
+        Alert.alert("Erro", "Falha na conexão");
+      }
+    };
+
+    fetchChats();
+
+    // Adicione ownerData e customerData nas dependências para refazer a busca se o user mudar
+  }, [customerData, ownerData]);
   return (
     <SafeAreaView className="flex-1 bg-white">
       <Header />
       <FlatList
-        data={conversationsData}
+        data={chats}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => <ConversationComponent item={item} />}
+        renderItem={({ item }) => (
+          <ConversationComponent item={item} chatId={item.id} />
+        )}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={() => (
           <View className="h-px bg-gray-200 ml-20 my-1" />

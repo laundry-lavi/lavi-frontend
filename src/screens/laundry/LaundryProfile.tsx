@@ -27,6 +27,7 @@ import {
 import { Feedback } from "@/types";
 import { CustomerContext } from "@/contexts";
 import { getFeedbacks } from "@/functions";
+import { API_URL } from "@/constants/backend";
 
 // --- DADOS DE EXEMPLO (MOCK DATA) ---
 const laundryImages = [
@@ -88,7 +89,49 @@ export default function LaundryProfileScreen({ route }: any) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
+  const { customerData } = useContext(CustomerContext);
   const laundryId = route.params.params.id;
+
+  async function goToChat() {
+    if (!customerData?.id) {
+      Alert.alert(
+        "Caro convidado",
+        "É necessário estar logado para realizar esta ação."
+      );
+      return;
+    }
+    try {
+      const response = await fetch(`${API_URL}/chats`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          chat: {
+            laundryId,
+            customerId: customerData.id,
+            memberId: null,
+          },
+        }),
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        console.error(body);
+        Alert.alert("Erro ao ir para o chat", body.details || "Erro");
+        return;
+      }
+      const { chat } = body;
+      navigation.navigate('ChatRoute', {
+        screen: 'ChatScreen',
+        params: {
+          chatId: chat.id,
+        }
+      });
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
 
   const fetchFeedbacks = async (isRefreshing = false) => {
     if (!laundryId) return;
@@ -290,7 +333,10 @@ export default function LaundryProfileScreen({ route }: any) {
                   {route.params.params.opening}
                 </Text>
               </View>
-              <TouchableOpacity className="flex-row items-center border border-gray-300 rounded-lg p-3 flex-1">
+              <TouchableOpacity
+                onPress={goToChat}
+                className="flex-row items-center border border-gray-300 rounded-lg p-3 flex-1"
+              >
                 <Ionicons
                   name="chatbubbles-outline"
                   size={24}

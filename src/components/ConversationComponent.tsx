@@ -110,8 +110,10 @@ const conversationsData: Conversation[] = [
 
 export default function ConversationComponent({
   item,
+  chatId,
 }: {
   item: Conversation;
+  chatId: string;
 }) {
   const navigation = useNavigation<NavigationProp<any>>();
 
@@ -128,7 +130,14 @@ export default function ConversationComponent({
   return (
     <TouchableOpacity
       className="flex-row gap-2 items-center p-3"
-      onPress={() => navigation.navigate("ChatScreen")}
+      onPress={() =>
+        navigation.navigate("ChatRoute", {
+          screen: "ChatScreen",
+          params: {
+            chatId: chatId,
+          },
+        })
+      }
     >
       {/* Indicador de ativa */}
       {item.isActive ? (
