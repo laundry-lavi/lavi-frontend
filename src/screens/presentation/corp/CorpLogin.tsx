@@ -15,7 +15,11 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 import { Text, BackArrow, PasswordInput } from "@/components";
-import { AuthenticationContext, OwnerContext } from "@/contexts/";
+import {
+  AuthenticationContext,
+  CustomerContext,
+  OwnerContext,
+} from "@/contexts/";
 import { getMember } from "@/functions/";
 import { API_URL } from "@/constants/backend";
 import { saveMemberSession } from "@/storage/session";
@@ -33,6 +37,7 @@ export default function CorpLogin() {
   const navigation = useNavigation<NavigationProp<any>>();
   const { setIsLaundryTrue } = useContext(AuthenticationContext);
   const { setOwnerData } = useContext(OwnerContext);
+  const { clearCustomerData } = useContext(CustomerContext);
 
   const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
 
@@ -101,6 +106,7 @@ export default function CorpLogin() {
       // Salvamos o tipo como 'corporate' para diferenciar do 'customer' no auto-login
       await saveMemberSession(body.token);
       Alert.alert("Sucesso", "Login realizado com sucesso!");
+      clearCustomerData();
       navigation.navigate("InitialRoute");
     } catch (error: any) {
       console.error("Erro login corp:", error);
