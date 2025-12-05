@@ -82,6 +82,9 @@ export default function HomeScreen() {
       })
     })
   }, []);
+  useEffect(() => {
+    
+  }, [])
 
   return isLaundry ? (
     <LaundryHome />

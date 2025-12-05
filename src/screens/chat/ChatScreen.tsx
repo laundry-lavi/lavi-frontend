@@ -1,317 +1,316 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
   SafeAreaView,
-  TouchableOpacity,
-  Image,
-  TextInput,
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  ImageSourcePropType,
   Alert,
+  ActivityIndicator,
+  Image,
+  TouchableOpacity,
+  TextInput,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
+
+// --- IMPORTS DO PROJETO ---
+// Ajuste os caminhos conforme sua estrutura de pastas
 import { API_URL } from "@/constants/backend";
 import { CustomerContext, OwnerContext } from "@/contexts";
+import { useSocket } from "@/contexts/SocketContext";
+import { useChat } from "@/contexts/ChatContext";
 
-// --- TIPAGEM (TYPESCRIPT) ---
-
-type MessageType = "text" | "system" | "timestamp" | "typing";
-
+// --- TIPAGENS ---
 type Message = {
   id: string;
-  type: MessageType;
-  sender?: "me" | "other";
+  type: "text" | "system";
+  sender: "me" | "other";
   content: string;
 };
 
-type UserInfo = {
+type RouteParams = {
+  chatId: string;
+};
+
+type ChatHeaderData = {
   name: string;
-  phone: string;
-  avatarUrl: ImageSourcePropType;
+  avatarUrl: { uri: string };
+  phone?: string;
 };
 
-// --- DADOS DE EXEMPLO (MOCK DATA) ---
-const userInfo: UserInfo = {
-  name: "Rafael Teodoro Santos",
-  phone: "+55 11 98765-4900",
-  avatarUrl: { uri: "https://i.pravatar.cc/150?img=11" }, // Substitua pela imagem real
-};
+// --- COMPONENTES AUXILIARES ---
 
-const messagesData: Message[] = [
-  {
-    id: "1",
-    type: "system",
-    content:
-      "Aviso de mensagem importante!\nEssa conversa ficará salva por apenas 48h",
-  },
-  {
-    id: "2",
-    type: "timestamp",
-    content: "17h 17m",
-  },
-  {
-    id: "3",
-    type: "text",
-    sender: "other",
-    content: "Olá, Boa tarde",
-  },
-  {
-    id: "4",
-    type: "text",
-    sender: "other",
-    content: "Você entregam a domicílio?",
-  },
-  {
-    id: "5",
-    type: "text",
-    sender: "me",
-    content: "Olá, Boa tarde",
-  },
-  {
-    id: "6",
-    type: "text",
-    sender: "me",
-    content: "Infelizmente, não trabalhamos com este tipo de serviço.",
-  },
-  {
-    id: "7",
-    type: "typing",
-    content: "...", // Placeholder for typing indicator
-  },
-];
-
-// --- COMPONENTES ---
-
-function ChatHeader({ user }: { user: UserInfo }) {
-  const navigation = useNavigation<NavigationProp<any>>();
-
-  return (
-    <View className="flex-row items-center p-3 bg-white border-b border-gray-200">
-      <TouchableOpacity className="p-2" onPress={() => navigation.navigate('ChatListScreen')}>
-        <Ionicons name="arrow-back" size={24} color="#374151" />
-      </TouchableOpacity>
-      <Image source={user.avatarUrl} className="w-10 h-10 rounded-full mx-3" />
-      <View>
-        <Text className="font-bold text-base text-gray-800">{user.name}</Text>
-        <Text className="text-sm text-gray-500">{user.phone}</Text>
-      </View>
+const ChatHeader = ({
+  data,
+  onBack,
+}: {
+  data: ChatHeaderData;
+  onBack: () => void;
+}) => (
+  <View className="flex-row items-center p-3 bg-white border-b border-gray-200 pt-10">
+    <TouchableOpacity onPress={onBack} className="mr-2 p-1">
+      <Ionicons name="arrow-back" size={24} color="#374151" />
+    </TouchableOpacity>
+    <Image
+      source={data.avatarUrl}
+      className="w-10 h-10 rounded-full bg-gray-200"
+    />
+    <View className="ml-3">
+      <Text className="font-bold text-base text-gray-800">{data.name}</Text>
+      {data.phone && (
+        <Text className="text-xs text-gray-500">{data.phone}</Text>
+      )}
     </View>
-  );
-}
+  </View>
+);
 
 const MessageBubble = ({ message }: { message: Message }) => {
-  const isMyMessage = message.sender === "me";
-
-  // --- Renderização condicional por tipo de mensagem ---
-
-  if (message.type === "system") {
-    return (
-      <View className="bg-purple-900 self-center rounded-lg py-2 px-4 my-2 max-w-[80%]">
-        <Text className="text-white text-center text-sm">
-          {message.content}
-        </Text>
-      </View>
-    );
-  }
-
-  if (message.type === "timestamp") {
-    return (
-      <Text className="text-gray-500 text-xs self-center my-2">
-        {message.content}
-      </Text>
-    );
-  }
-
-  if (message.type === "typing") {
-    return (
-      <View className="bg-purple-200 self-start rounded-xl rounded-bl-none p-3 my-1">
-        <Text className="text-gray-600 font-bold tracking-widest">...</Text>
-      </View>
-    );
-  }
-
-  // --- Bolha de texto padrão ---
+  const isMe = message.sender === "me";
   return (
     <View
       className={`py-3 px-4 my-1 max-w-[75%] rounded-xl ${
-        isMyMessage
+        isMe
           ? "bg-purple-800 self-end rounded-br-none"
           : "bg-purple-200 self-start rounded-bl-none"
       }`}
     >
-      <Text className={isMyMessage ? "text-white" : "text-gray-800"}>
+      <Text className={isMe ? "text-white" : "text-gray-800"}>
         {message.content}
       </Text>
     </View>
   );
 };
 
-const MessageInput = () => {
-  const [input, setInput] = useState("");
-
+const MessageInput = ({ onSend }: { onSend: (t: string) => void }) => {
+  const [text, setText] = useState("");
+  const handleSend = () => {
+    if (text.trim()) {
+      onSend(text);
+      setText("");
+    }
+  };
   return (
-    <View className="flex-row items-center p-3 bg-white border-t border-gray-200">
-      <View className="flex-1 bg-white border border-gray-300 rounded-lg">
-        <TextInput
-          placeholder="Mensagem..."
-          placeholderTextColor="#9CA3AF"
-          value={input}
-          onChangeText={setInput}
-          className="p-3 text-gray-800"
-        />
-      </View>
-      <TouchableOpacity className="w-12 h-12 rounded-full bg-purple-800 justify-center items-center ml-3">
-        <Ionicons name="paper-plane-outline" size={24} color="white" />
+    <View className="flex-row items-center p-3 bg-white border-t border-gray-200 pb-8">
+      <TextInput
+        className="flex-1 bg-gray-50 border border-gray-300 rounded-full px-4 py-3 mr-2 text-black"
+        placeholder="Digite uma mensagem..."
+        placeholderTextColor="#9CA3AF"
+        value={text}
+        onChangeText={setText}
+        onSubmitEditing={handleSend}
+      />
+      <TouchableOpacity
+        onPress={handleSend}
+        className="bg-purple-800 p-3 rounded-full"
+      >
+        <Ionicons name="send" size={20} color="white" />
       </TouchableOpacity>
     </View>
   );
 };
-type RouteParams = {
-  chatId: string | undefined;
-};
 
-type MessageFromApi = {
-  id: string;
-  sender_id: string;
-  sender_type: "member" | "customer";
-  content: string;
-  status: string;
-  chat_id: string;
-  created_at: string;
-};
-
-type ChatFromApi = {
-  id: string;
-  customer_name: string;
-  laundry_name: string;
-  customer_profileUrl: string | null;
-  laundry_profileUrl: string | null;
-  customerId: string;
-  laundryId: string;
-};
 // --- TELA PRINCIPAL ---
+
 export default function ChatScreen() {
+  const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as RouteParams;
-  const [messages, setMessages] = useState<Message[]>([]);
+
+  // Hooks de Contexto
   const { customerData } = useContext(CustomerContext);
   const { ownerData } = useContext(OwnerContext);
-  const [chatData, setChatData] = useState<UserInfo | null>(null);
+  const { chats, setActiveChat } = useChat();
+  const socket = useSocket();
 
-  const user_type = customerData?.id ? "customer" : "member";
+  // Estados Locais
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [headerData, setHeaderData] = useState<ChatHeaderData | null>(null);
+  const flatListRef = useRef<FlatList>(null);
 
-  if (!params?.chatId) {
-    Alert.alert("Erro nos chats", "chatId não enviado");
-    return;
-  }
+  // Identificação do Usuário
+  const currentUserId = customerData?.id || ownerData?.id;
+  const isCustomer = !!customerData?.id;
 
+  // 1. CARREGAR DADOS DO CABEÇALHO
+  useEffect(() => {
+    // Avisa o Context global que estamos nesta conversa (para não notificar novas msgs aqui)
+    setActiveChat(params.chatId);
+
+    const loadHeader = async () => {
+      // Tenta pegar do cache global primeiro
+      const cachedChat = chats.find((c) => c.id === params.chatId);
+      if (cachedChat) {
+        setHeaderData({
+          name: cachedChat.name,
+          avatarUrl: cachedChat.avatarUrl,
+        });
+        return;
+      }
+      // Fallback para API
+      try {
+        const response = await fetch(`${API_URL}/chats/${params.chatId}`);
+        const body = await response.json();
+        const chat = body.chat;
+        setHeaderData({
+          name: isCustomer ? chat.laundry_name : chat.customer_name,
+          avatarUrl: {
+            uri:
+              (isCustomer
+                ? chat.laundry_profileUrl
+                : chat.customer_profileUrl) || "https://placehold.co/150",
+          },
+        });
+      } catch (error) {
+        console.log("Erro ao carregar header:", error);
+      }
+    };
+    loadHeader();
+
+    // Cleanup: Ao sair da tela, libera o chat ativo
+    return () => {
+      setActiveChat(null);
+    };
+  }, [params.chatId, chats, isCustomer, setActiveChat]);
+
+  // 2. FETCH MENSAGENS ANTIGAS (Histórico)
   useEffect(() => {
     const fetchMessages = async () => {
-      // 1. Identificar quem é o usuário logado ("Eu")
-      const currentUserId = customerData?.id || ownerData?.id;
-
+      if (!currentUserId) return;
       try {
-        const response = await fetch(
-          `${API_URL}/messages/${params.chatId}`
-        );
-
-        if (response.status === 404) {
-          setMessages([]); // Chat vazio
-          return;
-        }
-
+        const response = await fetch(`${API_URL}/messages/${params.chatId}`);
         const body = await response.json();
-        console.log(body);
-        const apiMessages = body.messages as MessageFromApi[];
+        const apiMessages = body.messages || [];
 
-        // 2. Mapear (Converter) os dados
-        const formattedMessages: Message[] = apiMessages.map((msg) => {
-          // Lógica para saber se a mensagem é minha
-          const isMe = msg.sender_id === currentUserId;
-
+        const formatted = apiMessages.map((msg: any) => {
+          // Comparação segura convertendo para String
+          const isMe = String(msg.sender_id) === String(currentUserId);
           return {
             id: msg.id,
-            type: "text", // Assumindo que a API retorna textos por padrão
+            type: "text",
             content: msg.content,
             sender: isMe ? "me" : "other",
           };
         });
-
-        // 3. Atualizar o estado (inverte a ordem se necessário, dependendo da sua FlatList)
-        setMessages(formattedMessages); // Ou formattedMessages.reverse() se a API vier do mais antigo pro mais novo e sua lista for invertida
+        setMessages(formatted);
       } catch (error) {
-        console.error(error);
-        Alert.alert("Erro", "Não foi possível carregar as mensagens");
+        console.error("Erro fetch mensagens:", error);
       }
     };
-
     fetchMessages();
-  }, [params.chatId, customerData, ownerData]);
+  }, [params.chatId, currentUserId]);
 
+  // 3. SOCKET: ESCUTAR MENSAGENS EM TEMPO REAL
   useEffect(() => {
-    const fetchChatData = async () => {
-      try {
-        const response = await fetch(`${API_URL}/chats/${params.chatId}`);
-        if (response.status == 404) {
-          Alert.alert("Erro ao buscar dados!", "Chat não encontrado");
-          return;
-        }
-        const body = await response.json();
-        const chat = body.chat as ChatFromApi;
-        setChatData({
-          name:
-            user_type == "customer" ? chat.laundry_name : chat.customer_name,
-          avatarUrl: {
-            uri:
-              (user_type == "customer"
-                ? chat.laundry_profileUrl
-                : chat.customer_profileUrl) ||
-              "https://i.pravatar.cc/1?img=3",
-          },
-          phone: "132",
-        });
-      } catch (error) {
-        console.error(error);
-        throw error;
+    if (!socket || !currentUserId) return;
+
+    // Função que decide a cor da mensagem (me vs other)
+    const appendMessage = (content: string, senderIdFromEvent: string) => {
+      // LOG DE DEBUG CRÍTICO: Veja isso no terminal se a cor estiver errada
+      console.log(
+        `Socket Debug - ID Evento: [${senderIdFromEvent}] vs Meu ID: [${currentUserId}]`
+      );
+
+      const isMe = String(senderIdFromEvent) === String(currentUserId);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Math.random().toString(), // ID temporário para lista
+          type: "text",
+          sender: isMe ? "me" : "other",
+          content: content,
+        },
+      ]);
+
+      // Scroll para o fim
+      setTimeout(
+        () => flatListRef.current?.scrollToEnd({ animated: true }),
+        100
+      );
+    };
+
+    // Handler A: Evento principal de nova mensagem (recebido por quem envia e quem recebe)
+    const handleMessageCreated = (data: any) => {
+      // 1. Verifica se a mensagem pertence a este chat
+      if (data.metadata?.chatId !== params.chatId) return;
+
+      console.log("📨 Evento message-created recebido:", data);
+
+      // 2. Extrai o ID do remetente com segurança
+      // O seu backend manda 'message' com o objeto completo dentro.
+      const msgSenderId = data.message?.sender_id || data.sender_id;
+
+      if (msgSenderId) {
+        appendMessage(data.content, msgSenderId);
+      } else {
+        console.warn("⚠️ Evento sem sender_id:", data);
       }
     };
-    fetchChatData();
-  }, []);
 
-  if (!chatData) {
+    // Handler B: Evento específico da Lavanderia (caso necessário)
+    const handleChatUpdate = (data: any) => {
+      // Se eu recebo isso e o status é 'unread_by_team', foi o Cliente que mandou.
+      if (data.chatId === params.chatId && data.status === "unread_by_team") {
+        // Passamos um ID falso apenas para garantir que não seja igual ao currentUserId
+        // Ou, se o data tiver senderId, melhor ainda.
+        appendMessage(data.lastMessage, "id_do_cliente_generico");
+      }
+    };
+
+    socket.on("message-created", handleMessageCreated);
+    socket.on("chat-update", handleChatUpdate);
+
+    return () => {
+      socket.off("message-created", handleMessageCreated);
+      socket.off("chat-update", handleChatUpdate);
+    };
+  }, [socket, params.chatId, currentUserId]);
+
+  // 4. FUNÇÃO DE ENVIAR (Sem Optimistic UI - Confia 100% no servidor)
+  const handleSendMessage = async (text: string) => {
+    try {
+      socket?.emit("create-message", {
+        chat_id: params.chatId,
+        content: text,
+      });
+      // Não adicionamos na lista manualmente aqui.
+      // Esperamos o evento 'message-created' voltar do servidor.
+    } catch (error) {
+      Alert.alert("Erro", "Falha ao enviar conexão socket");
+    }
+  };
+
+  if (!headerData) {
     return (
       <SafeAreaView className="flex-1 bg-white justify-center items-center">
-        <Text>Carregando chat...</Text>
+        <ActivityIndicator size="large" color="#6B21A8" />
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView className="flex-1 bg-white">
+      <ChatHeader data={headerData} onBack={() => navigation.goBack()} />
+
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -50} // Ajuste conforme necessário
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
-        <ChatHeader user={chatData} />
         <FlatList
+          ref={flatListRef}
           data={messages}
           renderItem={({ item }) => <MessageBubble message={item} />}
           keyExtractor={(item) => item.id}
-          className="flex-1"
           contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10 }}
-          // A propriedade 'inverted' pode ser usada para chats que começam de baixo para cima
-          // Se usar 'inverted', lembre-se de inverter a ordem do seu array de dados
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: false })
+          }
         />
-        <MessageInput />
+
+        <MessageInput onSend={handleSendMessage} />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
