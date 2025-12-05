@@ -13,7 +13,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { Text, ConversationComponent } from "@/components";
 import { Conversation, ConversationStatus } from "@/types";
 import { getSession } from "@/storage/session";
-import { CustomerContext, OwnerContext } from "@/contexts";
+import { CustomerContext, LaundryContext, OwnerContext } from "@/contexts";
 import { API_URL } from "@/constants/backend";
 import { useNavigation } from "@react-navigation/native";
 
@@ -113,9 +113,10 @@ type ChatFromApi = {
 export default function ChatList() {
   const navigation = useNavigation();
   const { customerData, clearCustomerData } = useContext(CustomerContext);
+  const { laundryData } = useContext(LaundryContext);
   const { ownerData } = useContext(OwnerContext);
   const [chats, setChats] = useState<Conversation[]>([]);
-  
+
   useEffect(() => {
     const fetchChats = async () => {
       const isCustomer = !!customerData?.id;
@@ -126,13 +127,14 @@ export default function ChatList() {
       try {
         const endpoint = isCustomer
           ? `${API_URL}/chats/customer/${currentUserId}`
-          : `${API_URL}/chats/laundry/${currentUserId}`;
+          : `${API_URL}/chats/laundry/${laundryData?.laundry.id}`;
 
         const response = await fetch(endpoint);
         const body = await response.json();
 
         if (!response.ok) {
           Alert.alert("Erro!", body.details || "Erro ao buscar chats");
+          console.error(body);
           return;
         }
 
@@ -147,8 +149,8 @@ export default function ChatList() {
             // Mesma lógica para a foto
             avatarUrl: {
               uri: isCustomer
-                ? c.laundry_profileUrl || "https://placehold.co/150"
-                : c.customer_profileUrl || "https://placehold.co/150",
+                ? c.laundry_profileUrl || "https://placehold.co/1"
+                : c.customer_profileUrl || "https://placehold.co/1",
             },
 
             // Dados genéricos precisam vir da API futuramente
