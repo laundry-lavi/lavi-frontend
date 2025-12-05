@@ -95,7 +95,7 @@ export default function ClientLogin() {
         role: customerDetails.role || "customer",
       });
 
-      Alert.alert("Sucesso!", "Login realizado com sucesso.");
+      //Alert.alert("Sucesso!", "Login realizado com sucesso.");
       clearOwnerData();
       navigation.navigate("InitialRoute");
     } catch (error: any) {

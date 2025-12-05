@@ -28,6 +28,7 @@ import { Feedback } from "@/types";
 import { CustomerContext } from "@/contexts";
 import { getFeedbacks } from "@/functions";
 import { API_URL } from "@/constants/backend";
+import { useInAppNotification } from "@/contexts/InAppNotification";
 
 // --- DADOS DE EXEMPLO (MOCK DATA) ---
 const laundryImages = [
@@ -91,13 +92,15 @@ export default function LaundryProfileScreen({ route }: any) {
 
   const { customerData } = useContext(CustomerContext);
   const laundryId = route.params.params.id;
+  const { showNotification } = useInAppNotification();
 
   async function goToChat() {
     if (!customerData?.id) {
-      Alert.alert(
-        "Caro convidado",
-        "É necessário estar logado para realizar esta ação."
-      );
+      showNotification({
+        title: "Caro convidado",
+        message: "É necessário estar logado para realizar esta ação",
+        type: "error",
+      });
       return;
     }
     try {
@@ -121,11 +124,11 @@ export default function LaundryProfileScreen({ route }: any) {
         return;
       }
       const { chat } = body;
-      navigation.navigate('ChatRoute', {
-        screen: 'ChatScreen',
+      navigation.navigate("ChatRoute", {
+        screen: "ChatScreen",
         params: {
           chatId: chat.id,
-        }
+        },
       });
     } catch (err) {
       console.error(err);

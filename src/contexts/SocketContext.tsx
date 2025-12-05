@@ -1,6 +1,7 @@
 // contexts/SocketContext.tsx
 import React, { createContext, useContext, useEffect } from "react";
 import { registerEvents, socket } from "@/socket-io";
+import { authInSocketIO } from "@/functions/authInSocketIO";
 
 const SocketContext = createContext(socket);
 
@@ -8,6 +9,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     socket.on("connect", () => {
       console.log("Conectado ao Socket:", socket.id);
+      authInSocketIO(socket);
     });
 
     socket.on("disconnect", () => {

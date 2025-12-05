@@ -105,7 +105,7 @@ export default function CorpLogin() {
       // 5. Persiste a Sessão (Disco)
       // Salvamos o tipo como 'corporate' para diferenciar do 'customer' no auto-login
       await saveMemberSession(body.token);
-      Alert.alert("Sucesso", "Login realizado com sucesso!");
+      //Alert.alert("Sucesso", "Login realizado com sucesso!");
       clearCustomerData();
       navigation.navigate("InitialRoute");
     } catch (error: any) {
