@@ -46,6 +46,10 @@ import "./global.css";
 import { SocketProvider } from "@/contexts/SocketContext";
 import { NotificationProvider } from "@/contexts/InAppNotification";
 import { ChatProvider } from "@/contexts/ChatContext";
+import { LogBox } from "react-native";
+
+// Ignora todos os logs de notificação na tela (Logs ainda aparecem no terminal)
+LogBox.ignoreAllLogs();
 
 const Stack = createStackNavigator();
 
