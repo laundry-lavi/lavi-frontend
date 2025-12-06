@@ -23,7 +23,7 @@ export default function FeedbackCard({ feedback }: { feedback: Feedback }) {
           className="w-10 h-10 rounded-full mr-3"
         />
         <View className="flex-1">
-          <Text className="font-sansBold text-base text-gray-800">
+          <Text className="font-sansBold text-base text-gray-800 dark:text-gray-300">
             {feedback.customerName}
           </Text>
           <View className="flex-row items-center mt-1">
@@ -39,14 +39,16 @@ export default function FeedbackCard({ feedback }: { feedback: Feedback }) {
                 />
               ))}
             </View>
-            <Text className="text-sm text-gray-500">{formattedDate}</Text>
+            <Text className="text-sm text-gray-500 dark:text-gray-200">
+              {formattedDate}
+            </Text>
           </View>
         </View>
       </View>
-      <Text className="text-base font-bold text-gray-800">
+      <Text className="text-base font-bold text-gray-800 dark:text-gray-300">
         {feedback.feedbackPost.title}
       </Text>
-      <Text className="text-gray-700 leading-6 mb-4">
+      <Text className="text-gray-700 leading-6 mb-4 dark:text-gray-200">
         {feedback.feedbackPost.content}
       </Text>
 
