@@ -59,18 +59,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const { customerData } = useContext(CustomerContext);
   const { ownerData } = useContext(OwnerContext);
   const { laundryData } = useContext(LaundryContext);
-  const socket = useSocket(); // <--- Hook do Socket
+  const socket = useSocket();
+
+  // --- MUDANÇA 1: Identificar o ID no corpo do componente ---
+  // Isso permite que o useEffect "veja" quando o usuário muda imediatamente
+  const currentUserId = customerData?.id || ownerData?.id;
+  const isCustomer = !!customerData?.id;
 
   // --- FUNÇÃO DE BUSCA (API) ---
   const fetchChats = useCallback(async () => {
-    const currentUserId = customerData?.id || ownerData?.id;
-    const isCustomer = !!customerData?.id;
-
+    // Validações de segurança
     if (!currentUserId) {
-      setChats([]);
+      setChats([]); // Garante limpeza se for chamado sem user
       return;
     }
 
+    // Se for Dono, só busca se já tiver os dados da lavanderia carregados
     if (!isCustomer && !laundryData?.laundry?.id) {
       return;
     }
@@ -100,7 +104,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             (isCustomer ? c.laundry_profileUrl : c.customer_profileUrl) ||
             "https://placehold.co/150",
         },
-        lastMessage: "Toque para ver a conversa", // Placeholder inicial
+        lastMessage: "Toque para ver a conversa",
         timestamp: "",
         unreadCount: 0,
         status: "sent",
@@ -113,7 +117,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [customerData, ownerData, laundryData]);
+  }, [currentUserId, isCustomer, laundryData]); // Dependências atualizadas com as variáveis locais
 
   // --- FUNÇÃO DE ATUALIZAÇÃO EM TEMPO REAL (SOCKET) ---
   const updateChatList = useCallback(
@@ -125,6 +129,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     ) => {
       setChats((prevChats) => {
         const existingChatIndex = prevChats.findIndex((c) => c.id === chatId);
+
+        // Se o chat não existe na lista (novo), força buscar da API
         if (existingChatIndex === -1) {
           fetchChats();
           return prevChats;
@@ -139,15 +145,11 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           minute: "2-digit",
         });
 
-        // --- A LÓGICA DE OURO ---
-        // Se este é o chat que o usuário está olhando agora (activeChatId),
-        // mantemos o contador em 0.
+        // --- Lógica de unreadCount e activeChat ---
         if (chatId === activeChatId) {
           chatToUpdate.unreadCount = 0;
-          // Opcional: Marcar como lido na hora
           chatToUpdate.status = "read";
         } else {
-          // Se o usuário está em outra tela ou outro chat, aí sim incrementa
           if (typeof serverUnreadCount === "number") {
             chatToUpdate.unreadCount = serverUnreadCount;
           } else {
@@ -160,26 +162,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         return [chatToUpdate, ...otherChats];
       });
     },
-    [fetchChats, activeChatId] // <--- Importante: activeChatId nas dependências
+    [fetchChats, activeChatId]
   );
 
   // --- EFEITO: OUVINTES DO SOCKET ---
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !currentUserId) return; // Só ouve se estiver logado
 
-    // Caso 1: Lavanderia recebe atualização (evento 'chat-update' do seu backend)
     const handleChatUpdate = (data: any) => {
       console.log("🔔 Socket Chat Update:", data);
-      // Backend envia: { chatId, lastMessage, status }
       if (data.chatId && data.lastMessage) {
         updateChatList(data.chatId, data.lastMessage, data.status);
       }
     };
 
-    // Caso 2: Cliente recebe mensagem (evento 'message-created' do seu backend)
     const handleMessageCreated = (data: any) => {
       console.log("🔔 Socket Message Created:", data);
-      // Backend envia: { content, type, metadata: { chatId } }
       if (data.metadata?.chatId && data.content) {
         updateChatList(data.metadata.chatId, data.content);
       }
@@ -192,12 +190,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       socket.off("chat-update", handleChatUpdate);
       socket.off("message-created", handleMessageCreated);
     };
-  }, [socket, updateChatList]);
+  }, [socket, updateChatList, currentUserId]); // currentUserId garante recriar listener se mudar user
 
-  // --- EFEITO: CARGA INICIAL ---
+  // --- MUDANÇA 2: EFEITO DE CARGA E LIMPEZA ---
+  // Esse useEffect agora reage à mudança de USUÁRIO.
   useEffect(() => {
+    if (!currentUserId) {
+      // Se deslogou (ID null), limpa os chats imediatamente
+      console.log("🧹 Limpando chats (Logout)");
+      setChats([]);
+      return;
+    }
+
+    // Se tem usuário, busca os chats
+    console.log("🔄 Buscando chats para:", currentUserId);
     fetchChats();
-  }, [fetchChats]);
+  }, [currentUserId, fetchChats]); // <--- A chave é o currentUserId aqui
 
   return (
     <ChatContext.Provider
@@ -205,7 +213,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         chats,
         isLoading,
         refreshChats: fetchChats,
-        setActiveChat: setActiveChatId
+        setActiveChat: setActiveChatId,
       }}
     >
       {children}
