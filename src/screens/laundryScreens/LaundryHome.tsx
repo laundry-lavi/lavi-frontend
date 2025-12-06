@@ -204,17 +204,17 @@ export default function LaundryHomeScreen() {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-slate-50 dark:bg-gray-900">
       <ScrollView>
         {/* Header */}
         <View className="flex-row-reverse p-4 items-center justify-between">
           <NotificationBtn />
           <TouchableOpacity onPress={() => console.log(categorizedOrders)}>
             <View>
-              <Text className="text-2xl font-bold text-gray-800">
+              <Text className="text-2xl font-bold text-gray-800 dark:text-gray-200">
                 Olá, {laundryData?.laundry?.name || "Lavanderia"}
               </Text>
-              <Text className="text-base text-gray-500">
+              <Text className="text-base text-gray-500 dark:text-gray-400">
                 Este é seu espaço de trabalho!
               </Text>
             </View>
@@ -223,7 +223,7 @@ export default function LaundryHomeScreen() {
 
         {/* Gerenciamento de Pedidos */}
         <View className="p-4">
-          <Text className="text-lg font-bold text-gray-800 mb-3">
+          <Text className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
             Gerenciamento de Pedidos
           </Text>
           <View className="flex-row justify-between">
@@ -254,13 +254,13 @@ export default function LaundryHomeScreen() {
 
         {/* Status da Qualidade (código inalterado) */}
         <View className="p-4">
-          <Text className="text-lg font-bold text-gray-800 mb-3">
+          <Text className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
             Status da Qualidade
           </Text>
           {isLoading && !isGuest ? (
             <ActivityIndicator size="large" color="#8A63D2" className="my-10" />
           ) : allFeedbacks.length > 0 ? (
-            <View className="bg-white p-4 rounded-lg shadow-sm flex-row items-center">
+            <View className="bg-white dark:bg-black p-4 rounded-lg shadow-sm flex-row items-center">
               <View className="flex-1 items-center">
                 <View className="bg-purple-200 px-2 py-1 rounded-md mb-2">
                   <Text className="text-purple-800 text-xs font-bold">
@@ -283,7 +283,7 @@ export default function LaundryHomeScreen() {
                     Avaliação Atual
                   </Text>
                 </View>
-                <Text className="text-5xl font-bold text-gray-800">
+                <Text className="text-5xl font-bold text-gray-800 dark:text-gray-200">
                   {rating}
                 </Text>
                 <View className="flex-row my-1">
@@ -309,13 +309,13 @@ export default function LaundryHomeScreen() {
               </View>
             </View>
           ) : (
-            <View className="bg-white p-4 rounded-lg shadow-sm items-center justify-center h-48">
+            <View className="bg-white dark:bg-black p-4 rounded-lg shadow-sm items-center justify-center h-48">
               <Ionicons
                 name="chatbox-ellipses-outline"
                 size={32}
                 color="#6B7280"
               />
-              <Text className="text-gray-600 mt-2 text-center">
+              <Text className="text-gray-500 dark:text-gray-200 mt-2 text-center">
                 A lavanderia ainda não possui avaliações.
               </Text>
             </View>
@@ -324,7 +324,7 @@ export default function LaundryHomeScreen() {
 
         {/* Seção de Comentários (código inalterado) */}
         <View className="p-4">
-          <Text className="text-lg font-bold text-gray-800 mb-3">
+          <Text className="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3">
             Comentários Recentes
           </Text>
 
@@ -392,8 +392,8 @@ export default function LaundryHomeScreen() {
               )}
             </>
           ) : (
-            <View className="bg-white p-4 rounded-lg shadow-sm items-center justify-center h-24">
-              <Text className="text-gray-600 text-center">
+            <View className="bg-white dark:bg-black p-4 rounded-lg shadow-sm items-center justify-center h-24">
+              <Text className="text-gray-600 dark:text-gray-200 text-center">
                 Nenhum comentário encontrado para este filtro.
               </Text>
             </View>

@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
+  Appearance,
 } from "react-native";
 import {
   NavigationProp,
@@ -17,6 +18,8 @@ import {
 import { BackArrow, NotificationBtn } from "@/components";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { CompletedOrderType } from "@/types"; // Importe seu tipo
+
+const theme = Appearance.getColorScheme();
 
 // --- Interface para os parâmetros da rota ---
 type ScreenRouteProp = RouteProp<
@@ -92,10 +95,15 @@ const OrderSection = ({
 }) => (
   <View className="m-2">
     <View className="flex-row items-center mb-4">
-      <View className="bg-[#2c003d] px-4 py-2 rounded-lg">
+      <View className="bg-[#2c003d] dark:bg-[#7f319e] px-4 py-2 rounded-lg">
         <Text className="text-white font-bold">{title}</Text>
       </View>
-      <Ionicons name="time-outline" size={24} color="#555" className="ml-2" />
+      <Ionicons
+        name="time-outline"
+        size={24}
+        color={theme === "dark" ? "#CCC" : "#555"}
+        className="ml-2"
+      />
     </View>
     <ScrollView
       className="p-3"
@@ -152,7 +160,11 @@ export default function RegisteredOrdersScreen() {
     emptyMessage: string
   ) => {
     if (orderList.length === 0) {
-      return <Text className="text-gray-500 ml-4">{emptyMessage}</Text>;
+      return (
+        <Text className="text-gray-500 dark:text-gray-200 ml-4">
+          {emptyMessage}
+        </Text>
+      );
     }
 
     return orderList.map((order) => {
@@ -181,12 +193,12 @@ export default function RegisteredOrdersScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
+    <SafeAreaView className="flex-1 bg-slate-50 dark:bg-gray-900">
       <StatusBar barStyle="light-content" />
 
       {/* Header */}
       <BackArrow />
-      <View className="bg-[#2c003d] p-4 flex-row items-center justify-between">
+      <View className="bg-[#2c003d] dark:bg-[#7f319e] p-4 flex-row items-center justify-between">
         <View className="items-center ml-[40%]">
           <Text className="text-white text-xl font-bold">Pedidos</Text>
           <Text className="text-gray-300 text-sm">registrados</Text>

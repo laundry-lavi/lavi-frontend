@@ -101,7 +101,7 @@ export default function LaundryProfileScreen() {
                       Perfil da Lavanderia
                     </Text>
                     <Text className="text-base text-gray-500">
-                      Lavanderia Lava-bem
+                      {laundryData?.laundry.name}
                     </Text>
                   </View>
                   <TouchableOpacity

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, TouchableOpacity, ScrollView } from "react-native";
+import { View, TouchableOpacity, ScrollView, Appearance } from "react-native";
 import Modal, { ModalProps } from "react-native-modal";
 
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
@@ -8,6 +8,7 @@ import Feather from "@expo/vector-icons/Feather";
 import Text from "./MyText";
 
 export default function NotificationBtn({ color }: { color?: string }) {
+  const theme = Appearance.getColorScheme();
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const toggleModal = () => {
@@ -63,7 +64,7 @@ export default function NotificationBtn({ color }: { color?: string }) {
         <MaterialCommunityIcons
           name="bell"
           size={32}
-          color={color || "#080030"}
+          color={theme === "dark" ? "white" : color || "black"}
         />
       </TouchableOpacity>
     </>
