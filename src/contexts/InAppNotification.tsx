@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useRef,
   useEffect,
+  useMemo, // <--- Importante
 } from "react";
 import {
   View,
@@ -16,9 +17,8 @@ import {
   Platform,
   StatusBar,
   Dimensions,
-  SafeAreaView,
 } from "react-native";
-import Ionicons from "@expo/vector-icons/Ionicons"; // Opcional: Para ícones
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 // --- TIPOS ---
 type NotificationType = "success" | "error" | "info" | "warning";
@@ -28,7 +28,7 @@ interface NotificationOptions {
   message: string;
   type?: NotificationType;
   onPress?: () => void;
-  duration?: number; // Tempo em ms (padrão 4000)
+  duration?: number;
 }
 
 interface NotificationContextData {
@@ -42,7 +42,6 @@ const NotificationContext = createContext<NotificationContextData>(
 
 // --- COMPONENTE VISUAL DA NOTIFICAÇÃO ---
 const { width } = Dimensions.get("window");
-const NOTIFICATION_HEIGHT = 100; // Altura estimada para cálculos
 
 const NotificationComponent = ({
   data,
@@ -53,32 +52,31 @@ const NotificationComponent = ({
   onHide: () => void;
   translateY: Animated.Value;
 }) => {
-  // Configuração do Gesto (Arrastar para cima para fechar)
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (_, gestureState) => {
-        // Se o usuário arrastar para cima (dy negativo), movemos a view junto
-        if (gestureState.dy < 0) {
-          translateY.setValue(gestureState.dy);
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        // Se arrastou rápido ou mais de 40px para cima, fecha
-        if (gestureState.dy < -40 || gestureState.vy < -0.5) {
-          onHide();
-        } else {
-          // Caso contrário, volta para a posição original (efeito elástico)
-          Animated.spring(translateY, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    })
-  ).current;
+  // CORREÇÃO: Usar useMemo para criar o PanResponder apenas uma vez
+  // Isso evita que o PanResponder.create rode dentro do render phase
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onPanResponderMove: (_, gestureState) => {
+          if (gestureState.dy < 0) {
+            translateY.setValue(gestureState.dy);
+          }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dy < -40 || gestureState.vy < -0.5) {
+            onHide();
+          } else {
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+            }).start();
+          }
+        },
+      }),
+    [onHide, translateY]
+  );
 
-  // Cores baseadas no tipo
   const getColors = () => {
     switch (data.type) {
       case "error":
@@ -119,48 +117,44 @@ const NotificationComponent = ({
       style={[styles.notificationContainer, { transform: [{ translateY }] }]}
       {...panResponder.panHandlers}
     >
-      <SafeAreaView style={{ backgroundColor: "transparent" }}>
-        <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: stylesColors.bg,
-              borderLeftColor: stylesColors.border,
-            },
-          ]}
+      {/* CORREÇÃO: Removido SafeAreaView interno que causa conflito com Animated */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: stylesColors.bg,
+            borderLeftColor: stylesColors.border,
+          },
+        ]}
+      >
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => {
+            if (data.onPress) data.onPress();
+            onHide();
+          }}
+          style={styles.contentContainer}
         >
-          <TouchableOpacity
-            activeOpacity={0.9}
-            onPress={() => {
-              if (data.onPress) data.onPress();
-              onHide();
-            }}
-            style={styles.contentContainer}
-          >
-            {/* Ícone */}
-            <View style={styles.iconContainer}>
-              <Ionicons
-                name={stylesColors.icon as any}
-                size={28}
-                color={stylesColors.iconColor}
-              />
-            </View>
+          <View style={styles.iconContainer}>
+            <Ionicons
+              name={stylesColors.icon as any}
+              size={28}
+              color={stylesColors.iconColor}
+            />
+          </View>
 
-            {/* Texto */}
-            <View style={styles.textContainer}>
-              <Text style={styles.title} numberOfLines={1}>
-                {data.title}
-              </Text>
-              <Text style={styles.message} numberOfLines={2}>
-                {data.message}
-              </Text>
-            </View>
-          </TouchableOpacity>
+          <View style={styles.textContainer}>
+            <Text style={styles.title} numberOfLines={1}>
+              {data.title}
+            </Text>
+            <Text style={styles.message} numberOfLines={2}>
+              {data.message}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
-          {/* Barra de "Puxar" visual (Opcional) */}
-          <View style={styles.handleIndicator} />
-        </View>
-      </SafeAreaView>
+        <View style={styles.handleIndicator} />
+      </View>
     </Animated.View>
   );
 };
@@ -175,43 +169,42 @@ export const NotificationProvider = ({
     null
   );
 
-  // Animated Value para controlar a posição Y
-  // Começa fora da tela (-200)
   const translateY = useRef(new Animated.Value(-200)).current;
   const timeoutRef = useRef<NodeJS.Timeout>();
 
   const hideNotification = useCallback(() => {
     Animated.timing(translateY, {
-      toValue: -200, // Sobe para sumir
+      toValue: -200,
       duration: 300,
       useNativeDriver: true,
     }).start(() => {
       setNotification(null);
     });
-  }, []);
+  }, [translateY]);
 
   const showNotification = useCallback(
     (options: NotificationOptions) => {
-      // Se já tiver um timer rodando, limpa
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
 
       setNotification(options);
 
-      // Animação de entrada (Slide Down)
-      Animated.spring(translateY, {
-        toValue: 0, // Posição final (topo visível)
-        useNativeDriver: true,
-        bounciness: 8, // Efeito de salto suave
-        speed: 12,
-      }).start();
+      // Pequeno timeout para garantir que o componente montou antes de animar
+      // Ajuda a evitar conflitos de layout
+      setTimeout(() => {
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+          bounciness: 8,
+          speed: 12,
+        }).start();
+      }, 10);
 
-      // Auto-hide
       const duration = options.duration || 4000;
       timeoutRef.current = setTimeout(() => {
         hideNotification();
       }, duration);
     },
-    [hideNotification]
+    [hideNotification, translateY]
   );
 
   return (
@@ -246,17 +239,17 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    zIndex: 9999, // Garante que fique acima de tudo
+    zIndex: 9999,
     paddingHorizontal: 16,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 10 : 0,
+    // Ajuste seguro para iOS e Android manualmente
+    paddingTop:
+      Platform.OS === "android" ? (StatusBar.currentHeight || 10) + 10 : 50,
   },
   card: {
-    marginTop: 10,
     flexDirection: "column",
     borderRadius: 16,
     borderLeftWidth: 5,
     padding: 16,
-    // Sombras bonitas (Shadow iOS / Elevation Android)
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
