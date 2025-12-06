@@ -119,8 +119,12 @@ export default function LaundryProfileScreen({ route }: any) {
       });
       const body = await response.json();
       if (!response.ok) {
-        console.error(body);
-        Alert.alert("Erro ao ir para o chat", body.details || "Erro");
+        //console.error(body);
+        showNotification({
+          title: "Comunicação indisponível",
+          type: "error",
+          message: "Infelizmente essa lavanderia está indiponível no momento.",
+        });
         return;
       }
       const { chat } = body;
@@ -131,8 +135,13 @@ export default function LaundryProfileScreen({ route }: any) {
         },
       });
     } catch (err) {
-      console.error(err);
-      throw err;
+      //console.error(err);
+      showNotification({
+        title: "Comunicação indisponível",
+        type: "error",
+        message: "Infelizmente essa lavanderia está indiponível no momento.",
+      });
+      return;
     }
   }
 
